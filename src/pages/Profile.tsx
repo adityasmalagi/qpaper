@@ -12,9 +12,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { User, FileText, Download, Eye, Save, Loader2, Settings, Mail, FileDown, Search } from 'lucide-react';
+import { User, FileText, Download, Eye, Save, Loader2, Settings, Mail, FileDown, Search, Heart, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { BOARDS, CLASS_LEVELS, ENGINEERING_BRANCHES } from '@/lib/constants';
+import { PaperCard } from '@/components/PaperCard';
 
 interface Profile {
   full_name: string | null;
@@ -52,6 +53,23 @@ interface DownloadedPaper {
     board: string;
     class_level: string;
     year: number;
+  } | null;
+}
+
+interface BookmarkedPaper {
+  id: string;
+  paper_id: string;
+  created_at: string;
+  paper: {
+    id: string;
+    title: string;
+    subject: string;
+    board: string;
+    class_level: string;
+    year: number;
+    exam_type: string;
+    views_count: number;
+    downloads_count: number;
   } | null;
 }
 
@@ -94,13 +112,16 @@ export default function Profile() {
   });
   const [myPapers, setMyPapers] = useState<Paper[]>([]);
   const [downloads, setDownloads] = useState<DownloadedPaper[]>([]);
+  const [bookmarks, setBookmarks] = useState<BookmarkedPaper[]>([]);
   const [saving, setSaving] = useState(false);
   const [savingSettings, setSavingSettings] = useState(false);
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [loadingDownloads, setLoadingDownloads] = useState(true);
+  const [loadingBookmarks, setLoadingBookmarks] = useState(true);
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [settingsAge, setSettingsAge] = useState<number | null>(null);
   const [downloadSearch, setDownloadSearch] = useState('');
+  const [bookmarkSearch, setBookmarkSearch] = useState('');
 
   const isEngineeringBranch = ENGINEERING_BRANCHES.includes(profile.class_level || '');
 
@@ -115,6 +136,7 @@ export default function Profile() {
       fetchProfile();
       fetchMyPapers();
       fetchDownloads();
+      fetchBookmarks();
     }
   }, [user]);
 
@@ -176,6 +198,40 @@ export default function Profile() {
       setDownloads(data as DownloadedPaper[]);
     }
     setLoadingDownloads(false);
+  };
+
+  const fetchBookmarks = async () => {
+    if (!user) return;
+    
+    const { data, error } = await supabase
+      .from('user_bookmarks')
+      .select(`
+        id,
+        paper_id,
+        created_at,
+        paper:question_papers(id, title, subject, board, class_level, year, exam_type, views_count, downloads_count)
+      `)
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false });
+
+    if (data) {
+      setBookmarks(data as BookmarkedPaper[]);
+    }
+    setLoadingBookmarks(false);
+  };
+
+  const removeBookmark = async (bookmarkId: string) => {
+    const { error } = await supabase
+      .from('user_bookmarks')
+      .delete()
+      .eq('id', bookmarkId);
+
+    if (error) {
+      toast.error('Failed to remove bookmark');
+    } else {
+      toast.success('Removed from bookmarks');
+      fetchBookmarks();
+    }
   };
 
   const validateForm = (): boolean => {
@@ -318,6 +374,15 @@ export default function Profile() {
     );
   });
 
+  const filteredBookmarks = bookmarks.filter((b) => {
+    if (!bookmarkSearch.trim()) return true;
+    const search = bookmarkSearch.toLowerCase();
+    return (
+      b.paper?.title?.toLowerCase().includes(search) ||
+      b.paper?.subject?.toLowerCase().includes(search)
+    );
+  });
+
   if (loading || loadingProfile) {
     return (
       <div className="min-h-screen bg-background">
@@ -350,6 +415,10 @@ export default function Profile() {
             <TabsTrigger value="downloads" className="flex items-center gap-2">
               <Download className="h-4 w-4" />
               Downloads ({downloads.length})
+            </TabsTrigger>
+            <TabsTrigger value="bookmarks" className="flex items-center gap-2">
+              <Heart className="h-4 w-4" />
+              Bookmarks ({bookmarks.length})
             </TabsTrigger>
             <TabsTrigger value="settings" className="flex items-center gap-2">
               <Settings className="h-4 w-4" />
@@ -660,6 +729,96 @@ export default function Profile() {
                           Remove
                         </Button>
                       </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="bookmarks">
+            <Card className="border-border bg-card">
+              <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <CardTitle>My Bookmarks</CardTitle>
+                  <CardDescription>
+                    Papers you've saved for later
+                  </CardDescription>
+                </div>
+                {bookmarks.length > 0 && (
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      placeholder="Search by title or subject..."
+                      value={bookmarkSearch}
+                      onChange={(e) => setBookmarkSearch(e.target.value)}
+                      className="w-full pl-9 sm:w-64"
+                    />
+                  </div>
+                )}
+              </CardHeader>
+              <CardContent>
+                {loadingBookmarks ? (
+                  <div className="flex justify-center py-8">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                  </div>
+                ) : bookmarks.length === 0 ? (
+                  <div className="py-8 text-center">
+                    <Heart className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
+                    <p className="text-muted-foreground">You haven't bookmarked any papers yet</p>
+                    <Link to="/browse">
+                      <Button className="mt-4 gradient-primary">Browse Papers</Button>
+                    </Link>
+                  </div>
+                ) : filteredBookmarks.length === 0 ? (
+                  <div className="py-8 text-center">
+                    <Search className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
+                    <p className="text-muted-foreground">No bookmarks match your search</p>
+                    <Button variant="outline" className="mt-4" onClick={() => setBookmarkSearch('')}>
+                      Clear Search
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    {filteredBookmarks.map((bookmark) => (
+                      bookmark.paper ? (
+                        <div key={bookmark.id} className="relative">
+                          <PaperCard
+                            id={bookmark.paper.id}
+                            title={bookmark.paper.title}
+                            subject={bookmark.paper.subject}
+                            board={bookmark.paper.board}
+                            classLevel={bookmark.paper.class_level}
+                            year={bookmark.paper.year}
+                            examType={bookmark.paper.exam_type}
+                            viewsCount={bookmark.paper.views_count}
+                            downloadsCount={bookmark.paper.downloads_count}
+                          />
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            className="absolute bottom-3 right-3 z-20"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              removeBookmark(bookmark.id);
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <Card key={bookmark.id} className="flex items-center justify-between p-4">
+                          <p className="text-muted-foreground">Paper no longer available</p>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => removeBookmark(bookmark.id)}
+                          >
+                            Remove
+                          </Button>
+                        </Card>
+                      )
                     ))}
                   </div>
                 )}

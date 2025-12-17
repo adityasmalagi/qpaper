@@ -8,6 +8,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { ArrowLeft, Download, Eye, Calendar, FileText, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { BookmarkButton } from '@/components/BookmarkButton';
+import { PDFViewer } from '@/components/PDFViewer';
 
 interface Paper {
   id: string;
@@ -195,7 +197,7 @@ export default function PaperDetail() {
               </span>
             </div>
 
-            <div className="flex gap-3">
+            <div className="flex flex-wrap gap-3">
               <Button onClick={handleDownload} className="gradient-primary">
                 <Download className="mr-2 h-4 w-4" />
                 Download PDF
@@ -205,24 +207,19 @@ export default function PaperDetail() {
                 onClick={() => window.open(paper.file_url, '_blank')}
               >
                 <Eye className="mr-2 h-4 w-4" />
-                View PDF
+                Open in New Tab
               </Button>
+              <BookmarkButton paperId={paper.id} variant="button" />
             </div>
           </CardContent>
         </Card>
 
-        {/* PDF Preview */}
-        <Card>
-          <CardContent className="p-0">
-            <div className="aspect-[4/5] w-full overflow-hidden rounded-lg">
-              <iframe
-                src={`${paper.file_url}#toolbar=0`}
-                className="h-full w-full border-0"
-                title={paper.title}
-              />
-            </div>
-          </CardContent>
-        </Card>
+        {/* PDF Viewer */}
+        <PDFViewer
+          fileUrl={paper.file_url}
+          title={paper.title}
+          className="min-h-[600px]"
+        />
       </div>
     </div>
   );
