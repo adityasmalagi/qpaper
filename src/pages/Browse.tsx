@@ -1,0 +1,310 @@
+import { useState, useEffect } from 'react';
+import { Navbar } from '@/components/Navbar';
+import { PaperCard } from '@/components/PaperCard';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { supabase } from '@/integrations/supabase/client';
+import { BOARDS, CLASS_LEVELS, SUBJECTS, EXAM_TYPES, YEARS } from '@/lib/constants';
+import { Search, Filter, X } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+
+interface QuestionPaper {
+  id: string;
+  title: string;
+  subject: string;
+  board: string;
+  class_level: string;
+  year: number;
+  exam_type: string;
+  views_count: number;
+  downloads_count: number;
+}
+
+export default function Browse() {
+  const [papers, setPapers] = useState<QuestionPaper[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filters, setFilters] = useState({
+    board: '',
+    classLevel: '',
+    subject: '',
+    year: '',
+    examType: '',
+  });
+  const [showFilters, setShowFilters] = useState(false);
+  const { toast } = useToast();
+
+  const fetchPapers = async () => {
+    setLoading(true);
+    try {
+      let query = supabase
+        .from('question_papers')
+        .select('*')
+        .eq('status', 'approved')
+        .order('created_at', { ascending: false });
+
+      if (searchQuery) {
+        query = query.ilike('title', `%${searchQuery}%`);
+      }
+      if (filters.board) {
+        query = query.eq('board', filters.board);
+      }
+      if (filters.classLevel) {
+        query = query.eq('class_level', filters.classLevel);
+      }
+      if (filters.subject) {
+        query = query.eq('subject', filters.subject);
+      }
+      if (filters.year) {
+        query = query.eq('year', parseInt(filters.year));
+      }
+      if (filters.examType) {
+        query = query.eq('exam_type', filters.examType);
+      }
+
+      const { data, error } = await query.limit(50);
+
+      if (error) throw error;
+      setPapers(data || []);
+    } catch (error) {
+      console.error('Error fetching papers:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load question papers',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPapers();
+  }, [filters]);
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    fetchPapers();
+  };
+
+  const clearFilters = () => {
+    setFilters({
+      board: '',
+      classLevel: '',
+      subject: '',
+      year: '',
+      examType: '',
+    });
+    setSearchQuery('');
+  };
+
+  const hasActiveFilters = Object.values(filters).some(v => v) || searchQuery;
+
+  return (
+    <div className="min-h-screen bg-background">
+      <Navbar />
+      
+      <div className="container mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="mb-2 text-3xl font-bold text-foreground">
+            Browse Question Papers
+          </h1>
+          <p className="text-muted-foreground">
+            Find past exam papers from various boards and subjects
+          </p>
+        </div>
+
+        {/* Search and Filter */}
+        <div className="mb-8 space-y-4">
+          <form onSubmit={handleSearch} className="flex gap-3">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Search by title..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <Button type="submit">Search</Button>
+            <Button 
+              type="button" 
+              variant="outline"
+              onClick={() => setShowFilters(!showFilters)}
+            >
+              <Filter className="mr-2 h-4 w-4" />
+              Filters
+            </Button>
+          </form>
+
+          {/* Filter Panel */}
+          {showFilters && (
+            <div className="rounded-lg border border-border bg-card p-4 animate-fade-in">
+              <div className="mb-4 flex items-center justify-between">
+                <span className="font-medium text-foreground">Filter Papers</span>
+                {hasActiveFilters && (
+                  <Button variant="ghost" size="sm" onClick={clearFilters}>
+                    <X className="mr-1 h-4 w-4" />
+                    Clear all
+                  </Button>
+                )}
+              </div>
+              
+              <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
+                <div className="space-y-2">
+                  <Label>Board</Label>
+                  <Select
+                    value={filters.board}
+                    onValueChange={(v) => setFilters(f => ({ ...f, board: v }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="All boards" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {BOARDS.map((board) => (
+                        <SelectItem key={board.value} value={board.value}>
+                          {board.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Class</Label>
+                  <Select
+                    value={filters.classLevel}
+                    onValueChange={(v) => setFilters(f => ({ ...f, classLevel: v }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="All classes" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {CLASS_LEVELS.map((cl) => (
+                        <SelectItem key={cl.value} value={cl.value}>
+                          {cl.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Subject</Label>
+                  <Select
+                    value={filters.subject}
+                    onValueChange={(v) => setFilters(f => ({ ...f, subject: v }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="All subjects" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {SUBJECTS.map((subject) => (
+                        <SelectItem key={subject.value} value={subject.value}>
+                          {subject.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Year</Label>
+                  <Select
+                    value={filters.year}
+                    onValueChange={(v) => setFilters(f => ({ ...f, year: v }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="All years" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {YEARS.map((year) => (
+                        <SelectItem key={year.value} value={year.value}>
+                          {year.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Exam Type</Label>
+                  <Select
+                    value={filters.examType}
+                    onValueChange={(v) => setFilters(f => ({ ...f, examType: v }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="All types" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {EXAM_TYPES.map((type) => (
+                        <SelectItem key={type.value} value={type.value}>
+                          {type.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Results */}
+        {loading ? (
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="h-48 animate-pulse rounded-lg bg-muted" />
+            ))}
+          </div>
+        ) : papers.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <Search className="mb-4 h-12 w-12 text-muted-foreground" />
+            <h3 className="mb-2 text-lg font-semibold text-foreground">
+              No papers found
+            </h3>
+            <p className="mb-4 text-muted-foreground">
+              Try adjusting your search or filters to find what you're looking for.
+            </p>
+            {hasActiveFilters && (
+              <Button variant="outline" onClick={clearFilters}>
+                Clear all filters
+              </Button>
+            )}
+          </div>
+        ) : (
+          <>
+            <p className="mb-4 text-sm text-muted-foreground">
+              Showing {papers.length} paper{papers.length !== 1 ? 's' : ''}
+            </p>
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {papers.map((paper) => (
+                <PaperCard
+                  key={paper.id}
+                  id={paper.id}
+                  title={paper.title}
+                  subject={paper.subject}
+                  board={paper.board}
+                  classLevel={paper.class_level}
+                  year={paper.year}
+                  examType={paper.exam_type}
+                  viewsCount={paper.views_count}
+                  downloadsCount={paper.downloads_count}
+                />
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
