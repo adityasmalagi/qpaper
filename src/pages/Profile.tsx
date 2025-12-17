@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { User, FileText, Download, Eye, Save, Loader2, Settings, Mail, FileDown } from 'lucide-react';
+import { User, FileText, Download, Eye, Save, Loader2, Settings, Mail, FileDown, Search } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { BOARDS, CLASS_LEVELS, ENGINEERING_BRANCHES } from '@/lib/constants';
 
@@ -100,6 +100,7 @@ export default function Profile() {
   const [loadingDownloads, setLoadingDownloads] = useState(true);
   const [errors, setErrors] = useState<ValidationErrors>({});
   const [settingsAge, setSettingsAge] = useState<number | null>(null);
+  const [downloadSearch, setDownloadSearch] = useState('');
 
   const isEngineeringBranch = ENGINEERING_BRANCHES.includes(profile.class_level || '');
 
@@ -307,6 +308,15 @@ export default function Profile() {
   };
 
   const isFormValid = profile.full_name && profile.full_name.trim().length >= 2 && profile.class_level && profile.board;
+
+  const filteredDownloads = downloads.filter((d) => {
+    if (!downloadSearch.trim()) return true;
+    const search = downloadSearch.toLowerCase();
+    return (
+      d.paper?.title?.toLowerCase().includes(search) ||
+      d.paper?.subject?.toLowerCase().includes(search)
+    );
+  });
 
   if (loading || loadingProfile) {
     return (
@@ -573,19 +583,32 @@ export default function Profile() {
 
           <TabsContent value="downloads">
             <Card className="border-border bg-card">
-              <CardHeader className="flex flex-row items-start justify-between">
+              <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                   <CardTitle>My Downloads</CardTitle>
                   <CardDescription>
                     Papers you have downloaded
                   </CardDescription>
                 </div>
-                {downloads.length > 0 && (
-                  <Button variant="outline" size="sm" onClick={exportDownloadsToCSV}>
-                    <FileDown className="mr-2 h-4 w-4" />
-                    Export CSV
-                  </Button>
-                )}
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                  {downloads.length > 0 && (
+                    <>
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                        <Input
+                          placeholder="Search by title or subject..."
+                          value={downloadSearch}
+                          onChange={(e) => setDownloadSearch(e.target.value)}
+                          className="w-full pl-9 sm:w-64"
+                        />
+                      </div>
+                      <Button variant="outline" size="sm" onClick={exportDownloadsToCSV}>
+                        <FileDown className="mr-2 h-4 w-4" />
+                        Export CSV
+                      </Button>
+                    </>
+                  )}
+                </div>
               </CardHeader>
               <CardContent>
                 {loadingDownloads ? (
@@ -600,9 +623,17 @@ export default function Profile() {
                       <Button className="mt-4 gradient-primary">Browse Papers</Button>
                     </Link>
                   </div>
+                ) : filteredDownloads.length === 0 ? (
+                  <div className="py-8 text-center">
+                    <Search className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
+                    <p className="text-muted-foreground">No downloads match your search</p>
+                    <Button variant="outline" className="mt-4" onClick={() => setDownloadSearch('')}>
+                      Clear Search
+                    </Button>
+                  </div>
                 ) : (
                   <div className="space-y-4">
-                    {downloads.map((download) => (
+                    {filteredDownloads.map((download) => (
                       <div key={download.id} className="flex items-center justify-between rounded-lg border border-border p-4">
                         <div className="space-y-1">
                           {download.paper ? (
