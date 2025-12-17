@@ -9,6 +9,8 @@ import Browse from "./pages/Browse";
 import Upload from "./pages/Upload";
 import Auth from "./pages/Auth";
 import PaperDetail from "./pages/PaperDetail";
+import Profile from "./pages/Profile";
+import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +28,8 @@ const App = () => (
             <Route path="/upload" element={<Upload />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/paper/:id" element={<PaperDetail />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/admin" element={<AdminDashboard />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

@@ -1,10 +1,17 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
-import { FileText, Upload, LogOut, User } from 'lucide-react';
+import { FileText, Upload, LogOut, User, Shield } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 export function Navbar() {
-  const { user, signOut } = useAuth();
+  const { user, isAdmin, signOut } = useAuth();
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
@@ -37,21 +44,51 @@ export function Navbar() {
               Upload Paper
             </Link>
           )}
+          {isAdmin && (
+            <Link 
+              to="/admin" 
+              className="flex items-center gap-1 text-sm font-medium text-primary transition-colors hover:text-primary/80"
+            >
+              <Shield className="h-4 w-4" />
+              Admin
+            </Link>
+          )}
         </div>
 
         <div className="flex items-center gap-3">
           {user ? (
             <>
-              <Link to="/upload">
-                <Button variant="outline" size="sm" className="hidden md:flex">
+              <Link to="/upload" className="hidden md:block">
+                <Button variant="outline" size="sm">
                   <Upload className="mr-2 h-4 w-4" />
                   Upload
                 </Button>
               </Link>
-              <Button variant="ghost" size="sm" onClick={handleSignOut}>
-                <LogOut className="mr-2 h-4 w-4" />
-                Sign Out
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="flex items-center gap-2">
+                    <User className="h-4 w-4" />
+                    <span className="hidden md:inline">Account</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem onClick={() => navigate('/profile')}>
+                    <User className="mr-2 h-4 w-4" />
+                    My Profile
+                  </DropdownMenuItem>
+                  {isAdmin && (
+                    <DropdownMenuItem onClick={() => navigate('/admin')}>
+                      <Shield className="mr-2 h-4 w-4" />
+                      Admin Dashboard
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </>
           ) : (
             <>
