@@ -125,6 +125,35 @@ export type Database = {
         }
         Relationships: []
       }
+      user_bookmarks: {
+        Row: {
+          created_at: string | null
+          id: string
+          paper_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          paper_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          paper_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_bookmarks_paper_id_fkey"
+            columns: ["paper_id"]
+            isOneToOne: false
+            referencedRelation: "question_papers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_downloads: {
         Row: {
           downloaded_at: string | null

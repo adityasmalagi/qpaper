@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Eye, Download, FileText } from 'lucide-react';
+import { BookmarkButton } from '@/components/BookmarkButton';
 
 interface PaperCardProps {
   id: string;
@@ -28,7 +29,12 @@ export function PaperCard({
 }: PaperCardProps) {
   return (
     <Link to={`/paper/${id}`}>
-      <Card className="group h-full transition-all duration-300 hover:shadow-card-hover hover:-translate-y-1 border-border/50 bg-card">
+      <Card className="group relative h-full transition-all duration-300 hover:shadow-card-hover hover:-translate-y-1 border-border/50 bg-card">
+        {/* Bookmark Button */}
+        <div className="absolute right-3 top-3 z-10">
+          <BookmarkButton paperId={id} variant="icon" />
+        </div>
+        
         <CardContent className="p-5">
           <div className="mb-3 flex items-start justify-between gap-2">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-secondary">
