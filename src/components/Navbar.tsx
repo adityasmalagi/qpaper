@@ -49,21 +49,12 @@ export function Navbar() {
         Home
       </Link>
       <Link 
-        to="/browse" 
+        to={user ? "/browse" : "/auth?redirect=/browse"} 
         onClick={onClose}
         className={`text-sm font-medium text-muted-foreground transition-colors hover:text-foreground ${mobile ? 'block py-2' : ''}`}
       >
         Browse Papers
       </Link>
-      {user && (
-        <Link 
-          to="/upload" 
-          onClick={onClose}
-          className={`text-sm font-medium text-muted-foreground transition-colors hover:text-foreground ${mobile ? 'block py-2' : ''}`}
-        >
-          Upload Paper
-        </Link>
-      )}
       {isAdmin && (
         <Link 
           to="/admin" 

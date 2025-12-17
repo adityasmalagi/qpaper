@@ -125,13 +125,13 @@ export default function Index() {
             </p>
             
             <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
-              <Link to="/browse">
+              <Link to={user ? "/browse" : "/auth?redirect=/browse"}>
                 <Button size="lg" className="gradient-primary px-8 py-6 text-lg shadow-glow glow-purple">
                   Browse Papers
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
-              <Link to="/upload">
+              <Link to={user ? "/upload" : "/auth?redirect=/upload"}>
                 <Button size="lg" variant="outline" className="border-border/50 bg-card/50 px-8 py-6 text-lg backdrop-blur-sm hover:bg-card">
                   <Upload className="mr-2 h-5 w-5" />
                   Upload a Paper
