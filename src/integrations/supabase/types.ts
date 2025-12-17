@@ -216,6 +216,8 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_downloads: { Args: { _paper_id: string }; Returns: undefined }
+      increment_views: { Args: { _paper_id: string }; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"

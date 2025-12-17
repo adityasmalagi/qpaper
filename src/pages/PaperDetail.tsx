@@ -54,11 +54,8 @@ export default function PaperDetail() {
       
       if (data) {
         setPaper(data);
-        // Increment view count
-        await supabase
-          .from('question_papers')
-          .update({ views_count: data.views_count + 1 })
-          .eq('id', id);
+        // Increment view count atomically
+        await supabase.rpc('increment_views', { _paper_id: id });
       }
     } catch (error) {
       console.error('Error fetching paper:', error);
@@ -76,11 +73,8 @@ export default function PaperDetail() {
     if (!paper) return;
     
     try {
-      // Increment download count
-      await supabase
-        .from('question_papers')
-        .update({ downloads_count: paper.downloads_count + 1 })
-        .eq('id', paper.id);
+      // Increment download count atomically
+      await supabase.rpc('increment_downloads', { _paper_id: paper.id });
 
       // Track download for logged-in users
       if (user) {
