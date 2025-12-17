@@ -109,12 +109,6 @@ export function Navbar() {
 
           {user ? (
             <>
-              <Link to="/profile?tab=bookmarks" className="hidden md:block">
-                <Button variant="outline" size="sm">
-                  <Heart className="mr-2 h-4 w-4" />
-                  My Bookmarks
-                </Button>
-              </Link>
               <Link to="/profile?tab=downloads" className="hidden md:block">
                 <Button variant="outline" size="sm">
                   <Download className="mr-2 h-4 w-4" />
