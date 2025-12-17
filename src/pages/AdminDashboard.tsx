@@ -16,7 +16,8 @@ import {
   Check, 
   X, 
   Clock,
-  TrendingUp
+  Shield,
+  ShieldOff
 } from 'lucide-react';
 
 interface Paper {
@@ -32,6 +33,13 @@ interface Paper {
   downloads_count: number;
 }
 
+interface UserWithRole {
+  id: string;
+  full_name: string | null;
+  created_at: string | null;
+  isAdmin: boolean;
+}
+
 interface Stats {
   totalPapers: number;
   pendingPapers: number;
@@ -45,6 +53,7 @@ export default function AdminDashboard() {
   const { user, isAdmin, loading } = useAuth();
   const navigate = useNavigate();
   const [papers, setPapers] = useState<Paper[]>([]);
+  const [users, setUsers] = useState<UserWithRole[]>([]);
   const [stats, setStats] = useState<Stats>({
     totalPapers: 0,
     pendingPapers: 0,
@@ -54,6 +63,7 @@ export default function AdminDashboard() {
     totalUsers: 0
   });
   const [loadingPapers, setLoadingPapers] = useState(true);
+  const [loadingUsers, setLoadingUsers] = useState(true);
 
   useEffect(() => {
     if (!loading && (!user || !isAdmin)) {
@@ -66,8 +76,78 @@ export default function AdminDashboard() {
     if (isAdmin) {
       fetchPapers();
       fetchStats();
+      fetchUsers();
     }
   }, [isAdmin]);
+
+  const fetchUsers = async () => {
+    setLoadingUsers(true);
+    const { data: profiles, error: profilesError } = await supabase
+      .from('profiles')
+      .select('id, full_name, created_at')
+      .order('created_at', { ascending: false });
+
+    if (profilesError) {
+      toast.error('Failed to load users');
+      setLoadingUsers(false);
+      return;
+    }
+
+    const { data: adminRoles, error: rolesError } = await supabase
+      .from('user_roles')
+      .select('user_id')
+      .eq('role', 'admin');
+
+    if (rolesError) {
+      toast.error('Failed to load user roles');
+      setLoadingUsers(false);
+      return;
+    }
+
+    const adminUserIds = new Set(adminRoles?.map(r => r.user_id) || []);
+    const usersWithRoles: UserWithRole[] = (profiles || []).map(p => ({
+      id: p.id,
+      full_name: p.full_name,
+      created_at: p.created_at,
+      isAdmin: adminUserIds.has(p.id)
+    }));
+
+    setUsers(usersWithRoles);
+    setLoadingUsers(false);
+  };
+
+  const toggleAdminRole = async (userId: string, currentlyAdmin: boolean) => {
+    if (userId === user?.id) {
+      toast.error("You cannot modify your own admin role");
+      return;
+    }
+
+    if (currentlyAdmin) {
+      const { error } = await supabase
+        .from('user_roles')
+        .delete()
+        .eq('user_id', userId)
+        .eq('role', 'admin');
+
+      if (error) {
+        toast.error('Failed to remove admin role');
+      } else {
+        toast.success('Admin role removed');
+        fetchUsers();
+      }
+    } else {
+      const { error } = await supabase
+        .from('user_roles')
+        .insert({ user_id: userId, role: 'admin' });
+
+      if (error) {
+        toast.error('Failed to grant admin role');
+      } else {
+        toast.success('Admin role granted');
+        fetchUsers();
+      }
+    }
+  };
 
   const fetchPapers = async () => {
     const { data, error } = await supabase
@@ -219,6 +299,10 @@ export default function AdminDashboard() {
               <FileText className="h-4 w-4" />
               All Papers ({allPapers.length})
             </TabsTrigger>
+            <TabsTrigger value="users" className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              Users ({users.length})
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="pending">
@@ -319,6 +403,62 @@ export default function AdminDashboard() {
                             <X className="h-4 w-4" />
                           </Button>
                         </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="users">
+            <Card className="border-border bg-card">
+              <CardHeader>
+                <CardTitle>User Management</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {loadingUsers ? (
+                  <p className="text-muted-foreground">Loading...</p>
+                ) : users.length === 0 ? (
+                  <p className="text-muted-foreground">No users found</p>
+                ) : (
+                  <div className="space-y-4">
+                    {users.map((u) => (
+                      <div key={u.id} className="flex items-center justify-between rounded-lg border border-border p-4">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-medium text-foreground">
+                              {u.full_name || 'Unnamed User'}
+                            </h3>
+                            {u.isAdmin && (
+                              <Badge className="bg-primary">Admin</Badge>
+                            )}
+                            {u.id === user?.id && (
+                              <Badge variant="outline">You</Badge>
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            Joined {u.created_at ? new Date(u.created_at).toLocaleDateString() : 'Unknown'}
+                          </p>
+                        </div>
+                        <Button
+                          size="sm"
+                          variant={u.isAdmin ? "destructive" : "default"}
+                          onClick={() => toggleAdminRole(u.id, u.isAdmin)}
+                          disabled={u.id === user?.id}
+                        >
+                          {u.isAdmin ? (
+                            <>
+                              <ShieldOff className="mr-1 h-4 w-4" />
+                              Remove Admin
+                            </>
+                          ) : (
+                            <>
+                              <Shield className="mr-1 h-4 w-4" />
+                              Make Admin
+                            </>
+                          )}
+                        </Button>
                       </div>
                     ))}
                   </div>
