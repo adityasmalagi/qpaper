@@ -34,6 +34,7 @@ export default function Browse() {
     examType: '',
     semester: '',
     internalNumber: '',
+    instituteName: '',
   });
   const [showFilters, setShowFilters] = useState(false);
   const { toast } = useToast();
@@ -71,6 +72,9 @@ export default function Browse() {
       if (filters.internalNumber) {
         query = query.eq('internal_number', parseInt(filters.internalNumber));
       }
+      if (filters.instituteName) {
+        query = query.ilike('institute_name', `%${filters.instituteName}%`);
+      }
 
       const { data, error } = await query.limit(50);
 
@@ -106,6 +110,7 @@ export default function Browse() {
       examType: '',
       semester: '',
       internalNumber: '',
+      instituteName: '',
     });
     setSearchQuery('');
   };
@@ -247,6 +252,16 @@ export default function Browse() {
                     />
                   </div>
                 )}
+
+                <div className="space-y-2">
+                  <Label>Institute Name</Label>
+                  <Input
+                    placeholder="Type institute name..."
+                    value={filters.instituteName}
+                    onChange={(e) => setFilters(f => ({ ...f, instituteName: e.target.value }))}
+                    className="h-10"
+                  />
+                </div>
               </div>
             </div>
           )}

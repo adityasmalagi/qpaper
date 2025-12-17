@@ -70,6 +70,7 @@ export type Database = {
           file_name: string
           file_url: string
           id: string
+          institute_name: string | null
           internal_number: number | null
           semester: number | null
           status: string | null
@@ -91,6 +92,7 @@ export type Database = {
           file_name: string
           file_url: string
           id?: string
+          institute_name?: string | null
           internal_number?: number | null
           semester?: number | null
           status?: string | null
@@ -112,6 +114,7 @@ export type Database = {
           file_name?: string
           file_url?: string
           id?: string
+          institute_name?: string | null
           internal_number?: number | null
           semester?: number | null
           status?: string | null
