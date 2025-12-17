@@ -34,6 +34,7 @@ export default function Upload() {
     examType: '',
     semester: '',
     internalNumber: '',
+    instituteName: '',
   });
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -177,6 +178,7 @@ export default function Upload() {
           status: 'pending',
           semester: requiresSemester ? parseInt(formData.semester) : null,
           internal_number: requiresInternalNumber ? parseInt(formData.internalNumber) : null,
+          institute_name: formData.instituteName.trim() || null,
         });
 
       if (insertError) throw insertError;
@@ -450,6 +452,18 @@ export default function Upload() {
                     </Select>
                   </div>
                 )}
+
+                {/* Institute Name Field */}
+                <div className="space-y-2 sm:col-span-2">
+                  <Label htmlFor="instituteName">Institute Name (optional)</Label>
+                  <Input
+                    id="instituteName"
+                    placeholder="e.g., MIT College of Engineering, Delhi University"
+                    value={formData.instituteName}
+                    onChange={(e) => setFormData(f => ({ ...f, instituteName: e.target.value }))}
+                    maxLength={200}
+                  />
+                </div>
               </div>
 
               <Button
