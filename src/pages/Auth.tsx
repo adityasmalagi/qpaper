@@ -35,7 +35,15 @@ export default function Auth() {
   const [googleLoading, setGoogleLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const redirect = searchParams.get('redirect') || '/';
+  // Validate redirect to prevent open redirect attacks
+  const isInternalRedirect = (url: string): boolean => {
+    if (!url.startsWith('/')) return false;
+    if (url.startsWith('//')) return false;
+    if (/^[a-z]+:/i.test(url)) return false;
+    return true;
+  };
+  const rawRedirect = searchParams.get('redirect') || '/';
+  const redirect = isInternalRedirect(rawRedirect) ? rawRedirect : '/';
 
   useEffect(() => {
     if (user) {
