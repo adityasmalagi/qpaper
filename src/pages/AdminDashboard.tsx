@@ -1,0 +1,333 @@
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Navbar } from '@/components/Navbar';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { 
+  FileText, 
+  Users, 
+  Download, 
+  Eye, 
+  Check, 
+  X, 
+  Clock,
+  TrendingUp
+} from 'lucide-react';
+
+interface Paper {
+  id: string;
+  title: string;
+  subject: string;
+  board: string;
+  class_level: string;
+  year: number;
+  status: string;
+  created_at: string;
+  views_count: number;
+  downloads_count: number;
+}
+
+interface Stats {
+  totalPapers: number;
+  pendingPapers: number;
+  approvedPapers: number;
+  totalDownloads: number;
+  totalViews: number;
+  totalUsers: number;
+}
+
+export default function AdminDashboard() {
+  const { user, isAdmin, loading } = useAuth();
+  const navigate = useNavigate();
+  const [papers, setPapers] = useState<Paper[]>([]);
+  const [stats, setStats] = useState<Stats>({
+    totalPapers: 0,
+    pendingPapers: 0,
+    approvedPapers: 0,
+    totalDownloads: 0,
+    totalViews: 0,
+    totalUsers: 0
+  });
+  const [loadingPapers, setLoadingPapers] = useState(true);
+
+  useEffect(() => {
+    if (!loading && (!user || !isAdmin)) {
+      navigate('/');
+      toast.error('Access denied. Admin privileges required.');
+    }
+  }, [user, isAdmin, loading, navigate]);
+
+  useEffect(() => {
+    if (isAdmin) {
+      fetchPapers();
+      fetchStats();
+    }
+  }, [isAdmin]);
+
+  const fetchPapers = async () => {
+    const { data, error } = await supabase
+      .from('question_papers')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      toast.error('Failed to load papers');
+    } else {
+      setPapers(data || []);
+    }
+    setLoadingPapers(false);
+  };
+
+  const fetchStats = async () => {
+    const { data: papersData } = await supabase
+      .from('question_papers')
+      .select('status, views_count, downloads_count');
+
+    const { count: usersCount } = await supabase
+      .from('profiles')
+      .select('*', { count: 'exact', head: true });
+
+    if (papersData) {
+      const totalDownloads = papersData.reduce((sum, p) => sum + (p.downloads_count || 0), 0);
+      const totalViews = papersData.reduce((sum, p) => sum + (p.views_count || 0), 0);
+      const pendingPapers = papersData.filter(p => p.status === 'pending').length;
+      const approvedPapers = papersData.filter(p => p.status === 'approved').length;
+
+      setStats({
+        totalPapers: papersData.length,
+        pendingPapers,
+        approvedPapers,
+        totalDownloads,
+        totalViews,
+        totalUsers: usersCount || 0
+      });
+    }
+  };
+
+  const updatePaperStatus = async (paperId: string, status: string) => {
+    const { error } = await supabase
+      .from('question_papers')
+      .update({ status })
+      .eq('id', paperId);
+
+    if (error) {
+      toast.error('Failed to update paper status');
+    } else {
+      toast.success(`Paper ${status === 'approved' ? 'approved' : 'rejected'}`);
+      fetchPapers();
+      fetchStats();
+    }
+  };
+
+  const deletePaper = async (paperId: string) => {
+    const { error } = await supabase
+      .from('question_papers')
+      .delete()
+      .eq('id', paperId);
+
+    if (error) {
+      toast.error('Failed to delete paper');
+    } else {
+      toast.success('Paper deleted');
+      fetchPapers();
+      fetchStats();
+    }
+  };
+
+  if (loading || !isAdmin) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="container mx-auto px-4 py-8">
+          <p className="text-center text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const pendingPapers = papers.filter(p => p.status === 'pending');
+  const allPapers = papers;
+
+  return (
+    <div className="min-h-screen bg-background">
+      <Navbar />
+      <div className="container mx-auto px-4 py-8">
+        <h1 className="mb-8 text-3xl font-bold text-foreground">Admin Dashboard</h1>
+
+        {/* Stats Cards */}
+        <div className="mb-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <Card className="border-border bg-card">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Total Papers</CardTitle>
+              <FileText className="h-4 w-4 text-primary" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-foreground">{stats.totalPapers}</div>
+              <p className="text-xs text-muted-foreground">
+                {stats.approvedPapers} approved, {stats.pendingPapers} pending
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-border bg-card">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Total Users</CardTitle>
+              <Users className="h-4 w-4 text-primary" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-foreground">{stats.totalUsers}</div>
+              <p className="text-xs text-muted-foreground">Registered users</p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-border bg-card">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Total Downloads</CardTitle>
+              <Download className="h-4 w-4 text-primary" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-foreground">{stats.totalDownloads}</div>
+              <p className="text-xs text-muted-foreground">All time downloads</p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-border bg-card">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Total Views</CardTitle>
+              <Eye className="h-4 w-4 text-primary" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-foreground">{stats.totalViews}</div>
+              <p className="text-xs text-muted-foreground">All time views</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Papers Management */}
+        <Tabs defaultValue="pending" className="w-full">
+          <TabsList className="mb-4">
+            <TabsTrigger value="pending" className="flex items-center gap-2">
+              <Clock className="h-4 w-4" />
+              Pending ({pendingPapers.length})
+            </TabsTrigger>
+            <TabsTrigger value="all" className="flex items-center gap-2">
+              <FileText className="h-4 w-4" />
+              All Papers ({allPapers.length})
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="pending">
+            <Card className="border-border bg-card">
+              <CardHeader>
+                <CardTitle>Pending Submissions</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {loadingPapers ? (
+                  <p className="text-muted-foreground">Loading...</p>
+                ) : pendingPapers.length === 0 ? (
+                  <p className="text-muted-foreground">No pending submissions</p>
+                ) : (
+                  <div className="space-y-4">
+                    {pendingPapers.map((paper) => (
+                      <div key={paper.id} className="flex items-center justify-between rounded-lg border border-border p-4">
+                        <div className="space-y-1">
+                          <h3 className="font-medium text-foreground">{paper.title}</h3>
+                          <div className="flex flex-wrap gap-2">
+                            <Badge variant="secondary">{paper.subject}</Badge>
+                            <Badge variant="outline">{paper.board}</Badge>
+                            <Badge variant="outline">Class {paper.class_level}</Badge>
+                            <Badge variant="outline">{paper.year}</Badge>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            onClick={() => updatePaperStatus(paper.id, 'approved')}
+                            className="bg-green-600 hover:bg-green-700"
+                          >
+                            <Check className="mr-1 h-4 w-4" />
+                            Approve
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => updatePaperStatus(paper.id, 'rejected')}
+                          >
+                            <X className="mr-1 h-4 w-4" />
+                            Reject
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="all">
+            <Card className="border-border bg-card">
+              <CardHeader>
+                <CardTitle>All Papers</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {loadingPapers ? (
+                  <p className="text-muted-foreground">Loading...</p>
+                ) : allPapers.length === 0 ? (
+                  <p className="text-muted-foreground">No papers found</p>
+                ) : (
+                  <div className="space-y-4">
+                    {allPapers.map((paper) => (
+                      <div key={paper.id} className="flex items-center justify-between rounded-lg border border-border p-4">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-medium text-foreground">{paper.title}</h3>
+                            <Badge 
+                              variant={paper.status === 'approved' ? 'default' : paper.status === 'pending' ? 'secondary' : 'destructive'}
+                            >
+                              {paper.status}
+                            </Badge>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            <Badge variant="outline">{paper.subject}</Badge>
+                            <Badge variant="outline">{paper.board}</Badge>
+                            <span className="text-xs text-muted-foreground">
+                              {paper.views_count} views • {paper.downloads_count} downloads
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          {paper.status !== 'approved' && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => updatePaperStatus(paper.id, 'approved')}
+                            >
+                              <Check className="h-4 w-4" />
+                            </Button>
+                          )}
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => deletePaper(paper.id)}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
+    </div>
+  );
+}
