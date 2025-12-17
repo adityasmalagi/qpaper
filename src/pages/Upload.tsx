@@ -139,20 +139,26 @@ export default function Upload() {
     setUploading(true);
     
     try {
-      // Upload file to storage
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+      // Upload file via edge function for server-side validation
+      const formDataUpload = new FormData();
+      formDataUpload.append('file', file);
       
-      const { error: uploadError } = await supabase.storage
-        .from('question-papers')
-        .upload(fileName, file);
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData?.session?.access_token;
+      
+      if (!accessToken) {
+        throw new Error('Not authenticated');
+      }
 
-      if (uploadError) throw uploadError;
+      const uploadResponse = await supabase.functions.invoke('validate-pdf-upload', {
+        body: formDataUpload,
+      });
 
-      // Get public URL
-      const { data: urlData } = supabase.storage
-        .from('question-papers')
-        .getPublicUrl(fileName);
+      if (uploadResponse.error || !uploadResponse.data?.success) {
+        throw new Error(uploadResponse.data?.error || uploadResponse.error?.message || 'Upload validation failed');
+      }
+
+      const { publicUrl } = uploadResponse.data;
 
       // Insert paper record
       const { error: insertError } = await supabase
@@ -166,7 +172,7 @@ export default function Upload() {
           subject: formData.subject,
           year: parseInt(formData.year),
           exam_type: formData.examType,
-          file_url: urlData.publicUrl,
+          file_url: publicUrl,
           file_name: file.name,
           status: 'pending',
           semester: requiresSemester ? parseInt(formData.semester) : null,
