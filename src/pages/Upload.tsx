@@ -189,11 +189,12 @@ export default function Upload() {
       });
       
       navigate('/browse');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Upload error:', error);
+      const errorMessage = error?.message || 'There was an error uploading your file. Please try again.';
       toast({
         title: 'Upload failed',
-        description: 'There was an error uploading your file. Please try again.',
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {

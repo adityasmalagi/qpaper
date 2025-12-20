@@ -137,37 +137,10 @@ export function Navbar() {
                     <User className="mr-2 h-4 w-4" />
                     Profile Information
                   </DropdownMenuItem>
-                  <DropdownMenuSub>
-                    <DropdownMenuSubTrigger>
-                      <Settings className="mr-2 h-4 w-4" />
-                      Settings
-                    </DropdownMenuSubTrigger>
-                    <DropdownMenuSubContent className="w-48">
-                      <DropdownMenuLabel>Theme</DropdownMenuLabel>
-                      <DropdownMenuItem onClick={() => setTheme('light')}>
-                        <Sun className="mr-2 h-4 w-4" />
-                        Light Theme
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setTheme('dark')}>
-                        <Moon className="mr-2 h-4 w-4" />
-                        Dark Theme
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setTheme('system')}>
-                        <Monitor className="mr-2 h-4 w-4" />
-                        System Default
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuLabel>Account Settings</DropdownMenuLabel>
-                      <DropdownMenuItem onClick={() => navigate('/profile?tab=settings')}>
-                        <Mail className="mr-2 h-4 w-4" />
-                        Email
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => navigate('/profile?tab=settings')}>
-                        <Calendar className="mr-2 h-4 w-4" />
-                        Age
-                      </DropdownMenuItem>
-                    </DropdownMenuSubContent>
-                  </DropdownMenuSub>
+                  <DropdownMenuItem onClick={() => navigate('/profile?tab=settings')}>
+                    <Settings className="mr-2 h-4 w-4" />
+                    Settings
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate('/profile?tab=bookmarks')}>
                     <Heart className="mr-2 h-4 w-4" />
                     Bookmarks

@@ -56,8 +56,8 @@ export const SUBJECTS = [
   { value: 'mathematics_4', label: 'Mathematics 4' },
   
   // Engineering Core Subjects
-  { value: 'nas', label: 'NAS (Network and Security)' },
-  { value: 'asd', label: 'ASD (Analysis & System Design)' },
+  { value: 'nas', label: 'NAS (Network Analysis and Synthesis)' },
+  { value: 'asd', label: 'ASD (Analog System Design)' },
   { value: 'dsdv', label: 'DSDV (Digital System Design & Verification)' },
   { value: 'coa', label: 'COA (Computer Organization & Architecture)' },
   { value: 'dsa', label: 'DSA (Data Structures & Algorithms)' },
