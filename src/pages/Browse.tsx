@@ -21,6 +21,8 @@ interface QuestionPaper {
   views_count: number;
   downloads_count: number;
   user_id: string;
+  semester: number | null;
+  internal_number: number | null;
   uploaderName?: string | null;
 }
 
@@ -328,6 +330,7 @@ export default function Browse() {
                   downloadsCount={paper.downloads_count}
                   uploaderName={paper.uploaderName}
                   uploaderId={paper.user_id}
+                  semester={paper.semester}
                 />
               ))}
             </div>
