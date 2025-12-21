@@ -1,10 +1,27 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { useAuth } from '@/hooks/useAuth';
-import { FileText, Upload, LogOut, User, Shield, Settings, Sun, Moon, Monitor, Menu, X, Download, Mail, Calendar, Heart, Users } from 'lucide-react';
-import { NotificationsDropdown } from '@/components/NotificationsDropdown';
-import { useTheme } from 'next-themes';
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
+import {
+  FileText,
+  Upload,
+  LogOut,
+  User,
+  Shield,
+  Settings,
+  Sun,
+  Moon,
+  Monitor,
+  Menu,
+  X,
+  Download,
+  Mail,
+  Calendar,
+  Heart,
+  Users,
+} from "lucide-react";
+import { NotificationsDropdown } from "@/components/NotificationsDropdown";
+import { useTheme } from "next-themes";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,13 +32,8 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuSubContent,
   DropdownMenuLabel,
-} from '@/components/ui/dropdown-menu';
-import {
-  Sheet,
-  SheetContent,
-  SheetTrigger,
-  SheetClose,
-} from '@/components/ui/sheet';
+} from "@/components/ui/dropdown-menu";
+import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 
 export function Navbar() {
   const { user, isAdmin, signOut } = useAuth();
@@ -31,36 +43,36 @@ export function Navbar() {
 
   const handleSignOut = async () => {
     await signOut();
-    navigate('/');
+    navigate("/");
   };
 
   const getThemeIcon = () => {
-    if (theme === 'light') return <Sun className="h-4 w-4" />;
-    if (theme === 'dark') return <Moon className="h-4 w-4" />;
+    if (theme === "light") return <Sun className="h-4 w-4" />;
+    if (theme === "dark") return <Moon className="h-4 w-4" />;
     return <Monitor className="h-4 w-4" />;
   };
 
   const NavLinks = ({ mobile = false, onClose }: { mobile?: boolean; onClose?: () => void }) => (
     <>
-      <Link 
-        to="/" 
+      <Link
+        to="/"
         onClick={onClose}
-        className={`text-sm font-medium text-muted-foreground transition-colors hover:text-foreground ${mobile ? 'block py-2' : ''}`}
+        className={`text-sm font-medium text-muted-foreground transition-colors hover:text-foreground ${mobile ? "block py-2" : ""}`}
       >
         Home
       </Link>
-      <Link 
-        to={user ? "/browse" : "/auth?redirect=/browse"} 
+      <Link
+        to={user ? "/browse" : "/auth?redirect=/browse"}
         onClick={onClose}
-        className={`text-sm font-medium text-muted-foreground transition-colors hover:text-foreground ${mobile ? 'block py-2' : ''}`}
+        className={`text-sm font-medium text-muted-foreground transition-colors hover:text-foreground ${mobile ? "block py-2" : ""}`}
       >
         Browse Papers
       </Link>
       {isAdmin && (
-        <Link 
-          to="/admin" 
+        <Link
+          to="/admin"
           onClick={onClose}
-          className={`flex items-center gap-1 text-sm font-medium text-primary transition-colors hover:text-primary/80 ${mobile ? 'py-2' : ''}`}
+          className={`flex items-center gap-1 text-sm font-medium text-primary transition-colors hover:text-primary/80 ${mobile ? "py-2" : ""}`}
         >
           <Shield className="h-4 w-4" />
           Admin
@@ -93,15 +105,15 @@ export function Navbar() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => setTheme('light')}>
+              <DropdownMenuItem onClick={() => setTheme("Light Mode")}>
                 <Sun className="mr-2 h-4 w-4" />
                 Light
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setTheme('dark')}>
+              <DropdownMenuItem onClick={() => setTheme("Dark Mode")}>
                 <Moon className="mr-2 h-4 w-4" />
                 Dark
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setTheme('system')}>
+              <DropdownMenuItem onClick={() => setTheme("System Mode")}>
                 <Monitor className="mr-2 h-4 w-4" />
                 System
               </DropdownMenuItem>
@@ -133,32 +145,32 @@ export function Navbar() {
                 <DropdownMenuContent align="end" className="w-56">
                   <DropdownMenuLabel>My Account</DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => navigate('/profile')}>
+                  <DropdownMenuItem onClick={() => navigate("/profile")}>
                     <User className="mr-2 h-4 w-4" />
                     Profile Information
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate('/profile?tab=settings')}>
+                  <DropdownMenuItem onClick={() => navigate("/profile?tab=settings")}>
                     <Settings className="mr-2 h-4 w-4" />
                     Settings
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate('/profile?tab=bookmarks')}>
+                  <DropdownMenuItem onClick={() => navigate("/profile?tab=bookmarks")}>
                     <Heart className="mr-2 h-4 w-4" />
                     Bookmarks
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate('/profile?tab=downloads')}>
+                  <DropdownMenuItem onClick={() => navigate("/profile?tab=downloads")}>
                     <Download className="mr-2 h-4 w-4" />
                     Downloads
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate('/profile?tab=following')}>
+                  <DropdownMenuItem onClick={() => navigate("/profile?tab=following")}>
                     <Users className="mr-2 h-4 w-4" />
                     Following
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate('/profile?tab=followers')}>
+                  <DropdownMenuItem onClick={() => navigate("/profile?tab=followers")}>
                     <Users className="mr-2 h-4 w-4" />
                     Followers
                   </DropdownMenuItem>
                   {isAdmin && (
-                    <DropdownMenuItem onClick={() => navigate('/admin')}>
+                    <DropdownMenuItem onClick={() => navigate("/admin")}>
                       <Shield className="mr-2 h-4 w-4" />
                       Admin Dashboard
                     </DropdownMenuItem>
@@ -201,7 +213,7 @@ export function Navbar() {
                   </div>
                   <span className="text-xl font-bold text-foreground">QP Hub</span>
                 </div>
-                
+
                 <div className="flex flex-col gap-1">
                   <NavLinks mobile onClose={() => setMobileMenuOpen(false)} />
                 </div>
@@ -249,8 +261,8 @@ export function Navbar() {
                           </Button>
                         </Link>
                       </SheetClose>
-                      <Button 
-                        variant="ghost" 
+                      <Button
+                        variant="ghost"
                         className="w-full justify-start text-destructive"
                         onClick={() => {
                           handleSignOut();
@@ -272,9 +284,7 @@ export function Navbar() {
                       </SheetClose>
                       <SheetClose asChild>
                         <Link to="/auth?mode=signup">
-                          <Button className="w-full gradient-primary">
-                            Get Started
-                          </Button>
+                          <Button className="w-full gradient-primary">Get Started</Button>
                         </Link>
                       </SheetClose>
                     </div>
