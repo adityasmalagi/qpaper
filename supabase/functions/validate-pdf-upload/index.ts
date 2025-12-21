@@ -5,6 +5,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const allowedOrigins = [
   'https://lovable.dev',
   'https://www.lovable.dev',
+  'https://qpaperhub.vercel.app',
   'http://localhost:5173',
   'http://localhost:8080',
   'http://localhost:3000',
@@ -12,10 +13,11 @@ const allowedOrigins = [
 
 function getCorsHeaders(req: Request) {
   const origin = req.headers.get('Origin') || '';
-  // Check if origin matches allowed list or is a Lovable preview domain
+  // Check if origin matches allowed list or is a Lovable/Vercel preview domain
   const isAllowed = allowedOrigins.includes(origin) || 
     origin.endsWith('.lovableproject.com') ||
-    origin.endsWith('.lovable.app');
+    origin.endsWith('.lovable.app') ||
+    origin.endsWith('.vercel.app');
   
   return {
     'Access-Control-Allow-Origin': isAllowed ? origin : allowedOrigins[0],
