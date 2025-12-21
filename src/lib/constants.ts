@@ -21,7 +21,7 @@ export const CLASS_LEVELS = [
   { value: "cse-aiml", label: "CSE - AI/ML" },
   { value: "cse-ds", label: "CSE - Data Science" },
   { value: "it", label: "Information Technology (IT)" },
-  { value: "computer Engineering", label: "Computer Engineering" },
+  { value: "computer engineering", label: "Computer Engineering" },
   { value: "computer science and technology", label: "CSE - Science and Technology" },
   { value: "ece", label: "Electronics & Communication (ECE)" },
   { value: "eee", label: "Electrical & Electronics (EEE)" },
@@ -30,7 +30,18 @@ export const CLASS_LEVELS = [
 ] as const;
 
 // Engineering branches that should show semester field
-export const ENGINEERING_BRANCHES = ["cse-aiml", "cse-ds", "it", "ece", "eee", "civil", "mechanical"];
+export const ENGINEERING_BRANCHES = [
+  "cse",
+  "cse-aiml",
+  "cse-ds",
+  "it",
+  "computer engineering",
+  "computer science and technology",
+  "ece",
+  "eee",
+  "civil",
+  "mechanical",
+];
 
 export const SUBJECTS = [
   // General Subjects
