@@ -19,6 +19,7 @@ import { BOARDS, CLASS_LEVELS, SUBJECTS, EXAM_TYPES, YEARS, SEMESTERS, INTERNAL_
 import { Upload as UploadIcon, FileText, X, Loader2 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
+import { uploadFormSchema } from '@/lib/validation';
 
 export default function Upload() {
   const { user, loading: authLoading } = useAuth();
@@ -108,19 +109,22 @@ export default function Upload() {
     
     if (!file || !user) return;
     
-    // Validate form
-    if (!formData.title || !formData.classLevel || !formData.board || 
-        !formData.subject || !formData.year || !formData.examType) {
+    // Validate form using zod schema
+    const validationResult = uploadFormSchema.safeParse(formData);
+    if (!validationResult.success) {
+      const firstError = validationResult.error.errors[0];
       toast({
-        title: 'Missing fields',
-        description: 'Please fill in all required fields',
+        title: 'Validation error',
+        description: firstError.message,
         variant: 'destructive',
       });
       return;
     }
 
+    const validatedData = validationResult.data;
+
     // Validate semester for SEM/Internals papers
-    if (requiresSemester && !formData.semester) {
+    if (requiresSemester && !validatedData.semester) {
       toast({
         title: 'Missing semester',
         description: 'Please select a semester for this exam type',
@@ -130,7 +134,7 @@ export default function Upload() {
     }
 
     // Validate internal number for Internals papers
-    if (requiresInternalNumber && !formData.internalNumber) {
+    if (requiresInternalNumber && !validatedData.internalNumber) {
       toast({
         title: 'Missing internal number',
         description: 'Please select the internal number (1, 2, or 3)',
@@ -190,31 +194,31 @@ export default function Upload() {
 
       const { publicUrl } = uploadResult;
 
-      // Insert paper record
+      // Insert paper record with validated data
       const { error: insertError } = await supabase
         .from('question_papers')
         .insert({
           user_id: user.id,
-          title: formData.title.trim(),
-          description: formData.description.trim() || null,
-          class_level: formData.classLevel,
-          board: formData.board,
-          subject: formData.subject,
-          year: parseInt(formData.year),
-          exam_type: formData.examType,
+          title: validatedData.title,
+          description: validatedData.description || null,
+          class_level: validatedData.classLevel,
+          board: validatedData.board,
+          subject: validatedData.subject,
+          year: parseInt(validatedData.year),
+          exam_type: validatedData.examType,
           file_url: publicUrl,
           file_name: file.name,
-          status: 'pending',
-          semester: requiresSemester ? parseInt(formData.semester) : null,
-          internal_number: requiresInternalNumber ? parseInt(formData.internalNumber) : null,
-          institute_name: formData.instituteName.trim() || null,
+          status: 'approved',
+          semester: requiresSemester && validatedData.semester ? parseInt(validatedData.semester) : null,
+          internal_number: requiresInternalNumber && validatedData.internalNumber ? parseInt(validatedData.internalNumber) : null,
+          institute_name: validatedData.instituteName || null,
         });
 
       if (insertError) throw insertError;
 
       toast({
         title: 'Upload successful!',
-        description: 'Your question paper has been submitted for review and will be visible once approved.',
+        description: 'Your question paper has been uploaded and is now visible.',
       });
       
       navigate('/browse');

@@ -9,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { BOARDS, CLASS_LEVELS, SUBJECTS, EXAM_TYPES, YEARS, SEMESTERS, INTERNAL_NUMBERS } from '@/lib/constants';
 import { Search, Filter, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { sanitizeSearchInput, browseFiltersSchema } from '@/lib/validation';
 
 interface QuestionPaper {
   id: string;
@@ -46,38 +47,63 @@ export default function Browse() {
   const fetchPapers = async () => {
     setLoading(true);
     try {
+      // Validate filters using zod schema
+      const validatedFilters = browseFiltersSchema.safeParse(filters);
+      if (!validatedFilters.success) {
+        toast({
+          title: 'Invalid filters',
+          description: 'Some filter values are invalid',
+          variant: 'destructive',
+        });
+        return;
+      }
+
       let query = supabase
         .from('question_papers')
         .select('id, title, subject, board, class_level, year, exam_type, views_count, downloads_count, semester, internal_number, user_id')
         .eq('status', 'approved')
         .order('created_at', { ascending: false });
 
-      if (searchQuery) {
-        query = query.ilike('title', `%${searchQuery}%`);
+      // Sanitize search query to prevent issues with special characters
+      const sanitizedSearch = sanitizeSearchInput(searchQuery);
+      if (sanitizedSearch) {
+        query = query.ilike('title', `%${sanitizedSearch}%`);
       }
-      if (filters.board) {
-        query = query.eq('board', filters.board);
+      if (validatedFilters.data.board) {
+        query = query.eq('board', validatedFilters.data.board);
       }
-      if (filters.classLevel) {
-        query = query.eq('class_level', filters.classLevel);
+      if (validatedFilters.data.classLevel) {
+        query = query.eq('class_level', validatedFilters.data.classLevel);
       }
-      if (filters.subject) {
-        query = query.eq('subject', filters.subject);
+      if (validatedFilters.data.subject) {
+        query = query.eq('subject', validatedFilters.data.subject);
       }
-      if (filters.year) {
-        query = query.eq('year', parseInt(filters.year));
+      if (validatedFilters.data.year) {
+        const yearNum = parseInt(validatedFilters.data.year);
+        if (!isNaN(yearNum) && yearNum >= 2000 && yearNum <= new Date().getFullYear() + 1) {
+          query = query.eq('year', yearNum);
+        }
       }
-      if (filters.examType) {
-        query = query.eq('exam_type', filters.examType);
+      if (validatedFilters.data.examType) {
+        query = query.eq('exam_type', validatedFilters.data.examType);
       }
-      if (filters.semester) {
-        query = query.eq('semester', parseInt(filters.semester));
+      if (validatedFilters.data.semester) {
+        const semNum = parseInt(validatedFilters.data.semester);
+        if (!isNaN(semNum) && semNum >= 1 && semNum <= 8) {
+          query = query.eq('semester', semNum);
+        }
       }
-      if (filters.internalNumber) {
-        query = query.eq('internal_number', parseInt(filters.internalNumber));
+      if (validatedFilters.data.internalNumber) {
+        const intNum = parseInt(validatedFilters.data.internalNumber);
+        if (!isNaN(intNum) && intNum >= 1 && intNum <= 3) {
+          query = query.eq('internal_number', intNum);
+        }
       }
-      if (filters.instituteName) {
-        query = query.ilike('institute_name', `%${filters.instituteName}%`);
+      if (validatedFilters.data.instituteName) {
+        const sanitizedInstitute = sanitizeSearchInput(validatedFilters.data.instituteName);
+        if (sanitizedInstitute) {
+          query = query.ilike('institute_name', `%${sanitizedInstitute}%`);
+        }
       }
 
       const { data, error } = await query.limit(50);
