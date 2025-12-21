@@ -37,18 +37,6 @@ export const SUBJECTS = [
   { value: "mathematics", label: "Mathematics" },
   { value: "physics", label: "Physics" },
   { value: "chemistry", label: "Chemistry" },
-  { value: "biology", label: "Biology" },
-  { value: "english", label: "English" },
-  { value: "hindi", label: "Hindi" },
-  { value: "history", label: "History" },
-  { value: "geography", label: "Geography" },
-  { value: "economics", label: "Economics" },
-  { value: "accountancy", label: "Accountancy" },
-  { value: "business_studies", label: "Business Studies" },
-  { value: "computer_science", label: "Computer Science" },
-  { value: "political_science", label: "Political Science" },
-  { value: "sociology", label: "Sociology" },
-  { value: "psychology", label: "Psychology" },
 
   // Engineering Mathematics
   { value: "mathematics_1", label: "Mathematics 1" },
@@ -79,10 +67,26 @@ export const SUBJECTS = [
   { value: "electronics_engineering", label: "Fundamental of Electronics Engineering" },
   { value: "computer_engineering", label: "Computer Engineering" },
 
+  { value: "biology", label: "Biology" },
+  { value: "english", label: "English" },
+  { value: "hindi", label: "Hindi" },
+  { value: "history", label: "History" },
+  { value: "geography", label: "Geography" },
+  { value: "economics", label: "Economics" },
+  { value: "accountancy", label: "Accountancy" },
+  { value: "business_studies", label: "Business Studies" },
+  { value: "computer_science", label: "Computer Science" },
+  { value: "political_science", label: "Political Science" },
+  { value: "sociology", label: "Sociology" },
+  { value: "psychology", label: "Psychology" },
+
   { value: "other", label: "Other" },
 ] as const;
 
 export const EXAM_TYPES = [
+  { value: "competitive", label: "Competitive Exam" },
+  { value: "sem_paper", label: "SEM Paper" },
+  { value: "internals", label: "Internals Paper" },
   { value: "board_exam", label: "Board Exam" },
   { value: "final", label: "Final Exam" },
   { value: "midterm", label: "Midterm" },
@@ -90,9 +94,6 @@ export const EXAM_TYPES = [
   { value: "sample_paper", label: "Sample Paper" },
   { value: "practice", label: "Practice Paper" },
   { value: "entrance", label: "Entrance Exam" },
-  { value: "competitive", label: "Competitive Exam" },
-  { value: "sem_paper", label: "SEM Paper" },
-  { value: "internals", label: "Internals Paper" },
 ] as const;
 
 export const SEMESTERS = [
