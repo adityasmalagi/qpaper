@@ -105,17 +105,17 @@ export function Navbar() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => setTheme("Light Mode")}>
+              <DropdownMenuItem onClick={() => setTheme("light")}>
                 <Sun className="mr-2 h-4 w-4" />
-                Light
+                Light Mode
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setTheme("Dark Mode")}>
+              <DropdownMenuItem onClick={() => setTheme("dark")}>
                 <Moon className="mr-2 h-4 w-4" />
-                Dark
+                Dark Mode
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setTheme("System Mode")}>
+              <DropdownMenuItem onClick={() => setTheme("system")}>
                 <Monitor className="mr-2 h-4 w-4" />
-                System
+                System Mode
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
