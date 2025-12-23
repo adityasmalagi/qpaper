@@ -77,7 +77,12 @@ export const SUBJECTS = [
   { value: "signal and system analysis", label: "Signal And System Analysis" },
   { value: "data visualization", label: "Data Visualization" },
   { value: "vlsi", label: "VLSI" },
-  { value: "data visualization", label: "Data Visualization" },
+  { value: 'principle of communication", label: "Principle Of Communication" },
+  { value: "signals and system analysis", label: "Signals And System Analysis" },
+  { value: "control system", label: "Control System" },
+  { value: "python for data science", label: "Python For Data Science" },
+  { value: "making with electronics", label: "Making With Electronics" },
+  
 
   // Programming Languages
   { value: "python", label: "Python" },
