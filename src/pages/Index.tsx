@@ -3,10 +3,11 @@ import { Link } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Search, Upload, BookOpen, FileText, ArrowRight, CheckCircle, Sparkles, Filter } from 'lucide-react';
+import { Search, Upload, BookOpen, ArrowRight, CheckCircle, Sparkles, Filter } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { PaperCard } from '@/components/PaperCard';
+import qphubLogo from '@/assets/qphub-logo.png';
 
 const uploadSteps = [
   { step: 1, title: 'Select Your Paper', description: 'Choose subject, board, year' },
@@ -138,7 +139,7 @@ export default function Index() {
 
       {/* Recommended Papers Section - Only for logged in users */}
       {user && recommendations.length > 0 && (
-        <section className="border-t border-border bg-card/30 py-12">
+        <section className="border-t border-border bg-card/30 py-12 animate-fade-in">
           <div className="container mx-auto px-4">
             <div className="mb-8 flex items-center justify-between">
               <div>
@@ -157,19 +158,24 @@ export default function Index() {
               </Link>
             </div>
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-              {recommendations.map((paper) => (
-                <PaperCard
-                  key={paper.id}
-                  id={paper.id}
-                  title={paper.title}
-                  subject={paper.subject}
-                  board={paper.board}
-                  classLevel={paper.class_level}
-                  year={paper.year}
-                  examType={paper.exam_type}
-                  viewsCount={paper.views_count}
-                  downloadsCount={paper.downloads_count}
-                />
+              {recommendations.map((paper, index) => (
+                <div 
+                  key={paper.id} 
+                  className="opacity-0 animate-fade-in-up"
+                  style={{ animationDelay: `${index * 100}ms`, animationFillMode: 'forwards' }}
+                >
+                  <PaperCard
+                    id={paper.id}
+                    title={paper.title}
+                    subject={paper.subject}
+                    board={paper.board}
+                    classLevel={paper.class_level}
+                    year={paper.year}
+                    examType={paper.exam_type}
+                    viewsCount={paper.views_count}
+                    downloadsCount={paper.downloads_count}
+                  />
+                </div>
               ))}
             </div>
           </div>
@@ -194,9 +200,13 @@ export default function Index() {
           
           <div className="mx-auto grid max-w-5xl gap-6 md:grid-cols-2 lg:grid-cols-4">
             {filterTips.map((tip, index) => (
-              <Card key={index} className="border-border/50 bg-card/80 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+              <Card 
+                key={index} 
+                className="border-border/50 bg-card/80 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg opacity-0 animate-fade-in-up"
+                style={{ animationDelay: `${index * 100}ms`, animationFillMode: 'forwards' }}
+              >
                 <CardContent className="p-6">
-                  <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/20 text-primary font-bold">
+                  <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/20 text-primary font-bold animate-float" style={{ animationDelay: `${index * 200}ms` }}>
                     {index + 1}
                   </div>
                   <h3 className="mb-2 font-semibold text-foreground">{tip.title}</h3>
@@ -249,11 +259,12 @@ export default function Index() {
                   {uploadSteps.map((item, index) => (
                     <div 
                       key={index} 
-                      className={`rounded-xl border p-4 transition-all ${
+                      className={`rounded-xl border p-4 transition-all opacity-0 animate-slide-in ${
                         index === 3 
                           ? 'border-primary/50 bg-gradient-to-r from-primary/10 to-accent/10' 
                           : 'border-border/50 bg-secondary/30'
                       }`}
+                      style={{ animationDelay: `${index * 150}ms`, animationFillMode: 'forwards' }}
                     >
                       <div className="mb-1 text-xs font-medium text-primary">Step {item.step}</div>
                       <div className="font-semibold text-foreground">{item.title}</div>
@@ -280,7 +291,7 @@ export default function Index() {
           </div>
           
           <div className="mx-auto grid max-w-5xl gap-6 md:grid-cols-3">
-            <Card className="group border-border/50 bg-card/80 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+            <Card className="group border-border/50 bg-card/80 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg opacity-0 animate-scale-in" style={{ animationDelay: '0ms', animationFillMode: 'forwards' }}>
               <CardContent className="p-6">
                 <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-secondary transition-colors group-hover:bg-primary">
                   <Search className="h-6 w-6 text-primary group-hover:text-primary-foreground transition-colors" />
@@ -292,7 +303,7 @@ export default function Index() {
               </CardContent>
             </Card>
             
-            <Card className="group border-border/50 bg-card/80 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+            <Card className="group border-border/50 bg-card/80 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg opacity-0 animate-scale-in" style={{ animationDelay: '100ms', animationFillMode: 'forwards' }}>
               <CardContent className="p-6">
                 <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-secondary transition-colors group-hover:bg-primary">
                   <Upload className="h-6 w-6 text-primary group-hover:text-primary-foreground transition-colors" />
@@ -304,7 +315,7 @@ export default function Index() {
               </CardContent>
             </Card>
             
-            <Card className="group border-border/50 bg-card/80 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+            <Card className="group border-border/50 bg-card/80 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg opacity-0 animate-scale-in" style={{ animationDelay: '200ms', animationFillMode: 'forwards' }}>
               <CardContent className="p-6">
                 <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-secondary transition-colors group-hover:bg-primary">
                   <BookOpen className="h-6 w-6 text-primary group-hover:text-primary-foreground transition-colors" />
@@ -323,9 +334,7 @@ export default function Index() {
       <footer className="border-t border-border bg-card/50 py-8">
         <div className="container mx-auto px-4 text-center">
           <div className="flex items-center justify-center gap-2 mb-4">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg gradient-primary">
-              <FileText className="h-4 w-4 text-primary-foreground" />
-            </div>
+            <img src={qphubLogo} alt="QP Hub" className="h-8 w-8 rounded-lg object-contain" />
             <span className="text-lg font-bold text-foreground">QP Hub</span>
           </div>
           <p className="text-sm text-muted-foreground">
