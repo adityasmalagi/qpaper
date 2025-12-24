@@ -183,10 +183,10 @@ export default function PaperDetail() {
   }
 
   return (
-    <div className="bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
       
-      <div className="container mx-auto max-w-4xl px-4 py-8 pb-12">
+      <div className="container mx-auto max-w-4xl px-4 py-8 pb-12 flex-1 animate-fade-in">
         {/* Back Button */}
         <Link
           to="/browse"
