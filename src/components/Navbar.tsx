@@ -3,7 +3,6 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import {
-  FileText,
   Upload,
   LogOut,
   User,
@@ -13,13 +12,11 @@ import {
   Moon,
   Monitor,
   Menu,
-  X,
   Download,
-  Mail,
-  Calendar,
   Heart,
   Users,
 } from "lucide-react";
+import qphubLogo from "@/assets/qphub-logo.png";
 import { NotificationsDropdown } from "@/components/NotificationsDropdown";
 import { useTheme } from "next-themes";
 import {
@@ -85,9 +82,7 @@ export function Navbar() {
     <nav className="sticky top-0 z-50 w-full border-b border-border bg-card/80 backdrop-blur-sm">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         <Link to="/" className="flex items-center gap-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg gradient-primary">
-            <FileText className="h-5 w-5 text-primary-foreground" />
-          </div>
+          <img src={qphubLogo} alt="QP Hub" className="h-9 w-9 rounded-lg object-contain" />
           <span className="text-xl font-bold text-foreground">QP Hub</span>
         </Link>
 
@@ -208,9 +203,7 @@ export function Navbar() {
             <SheetContent side="right" className="w-72">
               <div className="flex flex-col gap-4 pt-6">
                 <div className="flex items-center gap-2 pb-4 border-b border-border">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg gradient-primary">
-                    <FileText className="h-5 w-5 text-primary-foreground" />
-                  </div>
+                  <img src={qphubLogo} alt="QP Hub" className="h-9 w-9 rounded-lg object-contain" />
                   <span className="text-xl font-bold text-foreground">QP Hub</span>
                 </div>
 
