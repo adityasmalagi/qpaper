@@ -18,6 +18,7 @@ interface PaperCardProps {
   uploaderName?: string | null;
   uploaderId?: string | null;
   semester?: number | null;
+  internalNumber?: number | null;
 }
 
 export function PaperCard({
@@ -33,6 +34,7 @@ export function PaperCard({
   uploaderName,
   uploaderId,
   semester,
+  internalNumber,
 }: PaperCardProps) {
   const navigate = useNavigate();
   
@@ -90,7 +92,11 @@ export function PaperCard({
                   {downloadsCount}
                 </span>
               </div>
-              <span className="capitalize">{examType.replace('_', ' ')}</span>
+              <span className="capitalize">
+                {examType === 'internals' && internalNumber 
+                  ? `Internal ${internalNumber}` 
+                  : examType.replace('_', ' ')}
+              </span>
             </div>
             {uploaderName && (
               <div 
