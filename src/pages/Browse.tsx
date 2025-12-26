@@ -357,6 +357,7 @@ export default function Browse() {
                   uploaderName={paper.uploaderName}
                   uploaderId={paper.user_id}
                   semester={paper.semester}
+                  internalNumber={paper.internal_number}
                 />
               ))}
             </div>
