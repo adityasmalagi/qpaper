@@ -94,9 +94,7 @@ export function PaperCard({
                 </span>
               </div>
               <span className="capitalize">
-                {examType === 'internals' && internalNumber 
-                  ? `Internal ${internalNumber}` 
-                  : examType.replace('_', ' ')}
+                {examType.replace('_', ' ')}
               </span>
             </div>
             {uploaderName && (
