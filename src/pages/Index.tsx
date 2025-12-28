@@ -1,15 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Search, Upload, BookOpen, ArrowRight, CheckCircle, Sparkles, Filter } from 'lucide-react';
+import { Search, Upload, BookOpen, ArrowRight, CheckCircle, Sparkles, Filter, RefreshCw } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { PaperCard } from '@/components/PaperCard';
 import { PaperCardSkeleton } from '@/components/PaperCardSkeleton';
-import { ScrollAnimation } from '@/hooks/useScrollAnimation';
+import { ScrollAnimation, useScrollAnimation } from '@/hooks/useScrollAnimation';
 import qphubLogo from '@/assets/qphub-logo.png';
 
 const uploadSteps = [
@@ -42,12 +42,28 @@ interface RecommendedPaper {
   exam_type: string;
   views_count: number;
   downloads_count: number;
+  semester: number | null;
+  internal_number: number | null;
+  institute_name: string | null;
+  user_id: string;
+  uploaderName?: string | null;
 }
 
 export default function Index() {
   const { user } = useAuth();
   const [recommendations, setRecommendations] = useState<RecommendedPaper[]>([]);
   const [loadingRecs, setLoadingRecs] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [scrollY, setScrollY] = useState(0);
+
+  // Parallax scroll effect
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrollY(window.scrollY);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   useEffect(() => {
     if (user) {
@@ -55,9 +71,13 @@ export default function Index() {
     }
   }, [user]);
 
-  const fetchRecommendations = async () => {
+  const fetchRecommendations = useCallback(async (isRefresh = false) => {
     if (!user) return;
-    setLoadingRecs(true);
+    if (isRefresh) {
+      setIsRefreshing(true);
+    } else {
+      setLoadingRecs(true);
+    }
     
     try {
       // Get user's profile
@@ -70,7 +90,7 @@ export default function Index() {
       if (profile?.class_level || profile?.board) {
         let query = supabase
           .from('question_papers')
-          .select('id, title, subject, board, class_level, year, exam_type, views_count, downloads_count')
+          .select('id, title, subject, board, class_level, year, exam_type, views_count, downloads_count, semester, internal_number, institute_name, user_id')
           .eq('status', 'approved')
           .limit(20); // Fetch more to randomize from
 
@@ -83,9 +103,21 @@ export default function Index() {
 
         const { data } = await query;
         
-        // Shuffle and pick 4 random papers
+        // Fetch uploader names and shuffle
         if (data && data.length > 0) {
-          const shuffled = data.sort(() => Math.random() - 0.5);
+          const userIds = [...new Set(data.map(p => p.user_id))];
+          const { data: profiles } = await supabase
+            .from('profiles')
+            .select('id, full_name')
+            .in('id', userIds);
+          
+          const profileMap = new Map(profiles?.map(p => [p.id, p.full_name]) || []);
+          const papersWithUploaders = data.map(paper => ({
+            ...paper,
+            uploaderName: profileMap.get(paper.user_id) || null
+          }));
+          
+          const shuffled = papersWithUploaders.sort(() => Math.random() - 0.5);
           setRecommendations(shuffled.slice(0, 4));
         }
       }
@@ -93,17 +125,32 @@ export default function Index() {
       console.error('Error fetching recommendations:', error);
     } finally {
       setLoadingRecs(false);
+      setIsRefreshing(false);
     }
+  }, [user]);
+
+  const handleRefresh = () => {
+    fetchRecommendations(true);
   };
 
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
       
-      {/* Hero Section */}
+      {/* Hero Section with Parallax */}
       <section className="relative overflow-hidden">
-        <div className="absolute inset-0 gradient-hero-dark" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_hsl(280,50%,20%,0.3)_0%,_transparent_50%)]" />
+        <div 
+          className="absolute inset-0 gradient-hero-dark transition-transform duration-100 ease-out"
+          style={{ transform: `translateY(${scrollY * 0.3}px)` }}
+        />
+        <div 
+          className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_hsl(280,50%,20%,0.3)_0%,_transparent_50%)] transition-transform duration-100 ease-out"
+          style={{ transform: `translateY(${scrollY * 0.2}px) scale(${1 + scrollY * 0.0005})` }}
+        />
+        <div 
+          className="absolute inset-0 bg-[radial-gradient(circle_at_30%_70%,_hsl(var(--primary)/0.15)_0%,_transparent_40%)] transition-transform duration-100 ease-out"
+          style={{ transform: `translateY(${scrollY * 0.15}px)` }}
+        />
         
         <div className="container relative mx-auto px-4 pb-20 pt-24 text-center">
           <div className="mx-auto max-w-4xl">
@@ -176,12 +223,24 @@ export default function Index() {
                     Based on your profile preferences
                   </p>
                 </div>
-                <Link to="/browse">
-                  <Button variant="outline" size="sm">
-                    View All
-                    <ArrowRight className="ml-2 h-4 w-4" />
+                <div className="flex items-center gap-2">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={handleRefresh}
+                    disabled={isRefreshing}
+                    className="gap-2"
+                  >
+                    <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                    Refresh
                   </Button>
-                </Link>
+                  <Link to="/browse">
+                    <Button variant="outline" size="sm">
+                      View All
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </Link>
+                </div>
               </div>
             </ScrollAnimation>
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -206,8 +265,13 @@ export default function Index() {
                       classLevel={paper.class_level}
                       year={paper.year}
                       examType={paper.exam_type}
-                      viewsCount={paper.views_count}
-                      downloadsCount={paper.downloads_count}
+                      viewsCount={paper.views_count ?? 0}
+                      downloadsCount={paper.downloads_count ?? 0}
+                      semester={paper.semester}
+                      internalNumber={paper.internal_number}
+                      instituteName={paper.institute_name}
+                      uploaderName={paper.uploaderName}
+                      uploaderId={paper.user_id}
                     />
                   </ScrollAnimation>
                 ))
