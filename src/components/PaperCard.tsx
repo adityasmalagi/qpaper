@@ -3,6 +3,8 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Eye, Download, FileText, User, Building2 } from 'lucide-react';
 import { BookmarkButton } from '@/components/BookmarkButton';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useState, useEffect } from 'react';
 
 interface PaperCardProps {
   id: string;
@@ -22,6 +24,22 @@ interface PaperCardProps {
   createdAt?: string | null;
 }
 
+// Helper to get/set clicked papers from localStorage
+const getClickedPapers = (): Set<string> => {
+  try {
+    const stored = localStorage.getItem('clickedNewPapers');
+    return stored ? new Set(JSON.parse(stored)) : new Set();
+  } catch {
+    return new Set();
+  }
+};
+
+const markPaperAsClicked = (id: string) => {
+  const clicked = getClickedPapers();
+  clicked.add(id);
+  localStorage.setItem('clickedNewPapers', JSON.stringify([...clicked]));
+};
+
 export function PaperCard({
   id,
   title,
@@ -40,9 +58,25 @@ export function PaperCard({
   createdAt,
 }: PaperCardProps) {
   const navigate = useNavigate();
+  const [hasBeenClicked, setHasBeenClicked] = useState(false);
 
-  // Check if paper was uploaded within last 24 hours
-  const isNew = createdAt ? (Date.now() - new Date(createdAt).getTime()) < 24 * 60 * 60 * 1000 : false;
+  // Check if paper was uploaded within last 24 hours and hasn't been clicked
+  const isNewPaper = createdAt ? (Date.now() - new Date(createdAt).getTime()) < 24 * 60 * 60 * 1000 : false;
+  
+  useEffect(() => {
+    if (isNewPaper) {
+      setHasBeenClicked(getClickedPapers().has(id));
+    }
+  }, [id, isNewPaper]);
+
+  const showNewAnimation = isNewPaper && !hasBeenClicked;
+
+  const handleCardClick = () => {
+    if (isNewPaper) {
+      markPaperAsClicked(id);
+      setHasBeenClicked(true);
+    }
+  };
 
   const handleUploaderClick = (e: React.MouseEvent) => {
     if (uploaderId) {
@@ -52,9 +86,9 @@ export function PaperCard({
     }
   };
   return (
-    <Link to={`/paper/${id}`}>
-      <Card className={`group relative h-full transition-all duration-300 hover:shadow-card-hover hover:-translate-y-1 border-border/50 bg-card ${isNew ? 'animate-pulse-subtle ring-2 ring-primary/20' : ''}`}>
-        {isNew && (
+    <Link to={`/paper/${id}`} onClick={handleCardClick}>
+      <Card className={`group relative h-full transition-all duration-300 hover:shadow-card-hover hover:-translate-y-1 border-border/50 bg-card ${showNewAnimation ? 'animate-pulse-subtle ring-2 ring-primary/20' : ''}`}>
+        {showNewAnimation && (
           <div className="absolute -top-2 -right-2 z-10">
             <Badge className="bg-primary text-primary-foreground text-[10px] px-1.5 py-0.5 animate-pulse">
               NEW
@@ -112,19 +146,37 @@ export function PaperCard({
               </span>
             </div>
             {uploaderName && (
-              <div 
-                className={`flex items-center gap-1 group/uploader ${uploaderId ? 'cursor-pointer hover:text-primary transition-colors' : 'hover:text-foreground transition-colors'}`}
-                onClick={uploaderId ? handleUploaderClick : undefined}
-              >
-                <User className="h-3.5 w-3.5 group-hover/uploader:scale-110 transition-transform" />
-                <span className="truncate">Uploaded by {uploaderName}</span>
-              </div>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div 
+                      className={`flex items-center gap-1 group/uploader ${uploaderId ? 'cursor-pointer hover:text-primary transition-colors' : 'hover:text-foreground transition-colors'}`}
+                      onClick={uploaderId ? handleUploaderClick : undefined}
+                    >
+                      <User className="h-3.5 w-3.5 group-hover/uploader:scale-110 transition-transform" />
+                      <span className="truncate">Uploaded by {uploaderName}</span>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Uploaded by {uploaderName}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             )}
             {instituteName && (
-              <div className="flex items-center gap-1 text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 transition-colors group/inst">
-                <Building2 className="h-3.5 w-3.5 group-hover/inst:scale-110 transition-transform" />
-                <span className="truncate">{instituteName}</span>
-              </div>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="flex items-center gap-1 text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 transition-colors group/inst">
+                      <Building2 className="h-3.5 w-3.5 group-hover/inst:scale-110 transition-transform" />
+                      <span className="truncate">{instituteName}</span>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{instituteName}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             )}
           </div>
         </CardContent>
