@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
 import { Button } from '@/components/ui/button';
@@ -16,7 +16,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { BOARDS, CLASS_LEVELS, SUBJECTS, EXAM_TYPES, YEARS, SEMESTERS, INTERNAL_NUMBERS } from '@/lib/constants';
-import { Upload as UploadIcon, FileText, X, Loader2, Image, Images } from 'lucide-react';
+import { Upload as UploadIcon, FileText, X, Loader2, Image, Images, GripVertical } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { uploadFormSchema } from '@/lib/validation';
@@ -103,6 +103,51 @@ export default function Upload() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [dragActive, setDragActive] = useState(false);
   const [detectedFileType, setDetectedFileType] = useState<FileType | null>(null);
+  
+  // Drag-and-drop reordering state
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const dragNodeRef = useRef<HTMLDivElement | null>(null);
+
+  const handleReorderDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedIndex(index);
+    dragNodeRef.current = e.currentTarget as HTMLDivElement;
+    e.dataTransfer.effectAllowed = 'move';
+    // Add a slight delay to show the drag effect
+    setTimeout(() => {
+      if (dragNodeRef.current) {
+        dragNodeRef.current.style.opacity = '0.5';
+      }
+    }, 0);
+  };
+
+  const handleReorderDragEnd = () => {
+    if (dragNodeRef.current) {
+      dragNodeRef.current.style.opacity = '1';
+    }
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+    dragNodeRef.current = null;
+  };
+
+  const handleReorderDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === index) return;
+    setDragOverIndex(index);
+  };
+
+  const handleReorderDrop = (e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === dropIndex) return;
+    
+    const newFiles = [...files];
+    const [draggedFile] = newFiles.splice(draggedIndex, 1);
+    newFiles.splice(dropIndex, 0, draggedFile);
+    setFiles(newFiles);
+    
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
 
   // Redirect if not authenticated
   if (!authLoading && !user) {
@@ -379,40 +424,70 @@ export default function Upload() {
                 >
                 {files.length > 0 ? (
                     <div className="space-y-3 animate-fade-in">
-                      {files.map((f, index) => (
-                        <div key={index} className="flex items-center justify-between gap-3 bg-muted/50 p-3 rounded-lg">
-                          <div className="flex items-center gap-3 min-w-0">
-                            <div className="rounded-full bg-primary/10 p-2 flex-shrink-0">
-                              {getFileType(f.name) === 'image' ? (
-                                <Image className="h-5 w-5 text-primary" />
-                              ) : (
-                                <FileText className="h-5 w-5 text-primary" />
-                              )}
-                            </div>
-                            <div className="text-left min-w-0">
-                              <p className="font-medium text-foreground truncate">{f.name}</p>
-                              <p className="text-xs text-muted-foreground">
-                                {(f.size / (1024 * 1024)).toFixed(2)} MB
-                              </p>
-                            </div>
-                          </div>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="hover:bg-destructive/10 hover:text-destructive transition-colors flex-shrink-0"
-                            onClick={() => removeFile(index)}
+                      {files.map((f, index) => {
+                        const isImage = getFileType(f.name) === 'image';
+                        const canReorder = files.length > 1 && isImage;
+                        
+                        return (
+                          <div 
+                            key={`${f.name}-${index}`}
+                            draggable={canReorder}
+                            onDragStart={(e) => canReorder && handleReorderDragStart(e, index)}
+                            onDragEnd={handleReorderDragEnd}
+                            onDragOver={(e) => canReorder && handleReorderDragOver(e, index)}
+                            onDrop={(e) => canReorder && handleReorderDrop(e, index)}
+                            className={`flex items-center justify-between gap-3 bg-muted/50 p-3 rounded-lg transition-all duration-200 ${
+                              canReorder ? 'cursor-grab active:cursor-grabbing' : ''
+                            } ${
+                              dragOverIndex === index && draggedIndex !== index
+                                ? 'ring-2 ring-primary ring-offset-2 ring-offset-background scale-[1.02]'
+                                : ''
+                            } ${
+                              draggedIndex === index ? 'opacity-50' : ''
+                            }`}
                           >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      ))}
+                            <div className="flex items-center gap-3 min-w-0">
+                              {canReorder && (
+                                <div className="flex-shrink-0 text-muted-foreground hover:text-foreground transition-colors">
+                                  <GripVertical className="h-5 w-5" />
+                                </div>
+                              )}
+                              <div className="rounded-full bg-primary/10 p-2 flex-shrink-0">
+                                {isImage ? (
+                                  <Image className="h-5 w-5 text-primary" />
+                                ) : (
+                                  <FileText className="h-5 w-5 text-primary" />
+                                )}
+                              </div>
+                              <div className="text-left min-w-0">
+                                <p className="font-medium text-foreground truncate">{f.name}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {canReorder && <span className="text-primary">Page {index + 1} • </span>}
+                                  {(f.size / (1024 * 1024)).toFixed(2)} MB
+                                </p>
+                              </div>
+                            </div>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="hover:bg-destructive/10 hover:text-destructive transition-colors flex-shrink-0"
+                              onClick={() => removeFile(index)}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        );
+                      })}
                       {files.length > 1 && (
-                        <div className="flex items-center justify-center gap-2">
+                        <div className="flex flex-col items-center gap-2">
                           <Badge variant="secondary" className="text-xs">
                             <Images className="h-3 w-3 mr-1" />
                             {files.length} images - Gallery mode
                           </Badge>
+                          <p className="text-xs text-muted-foreground">
+                            Drag items to reorder gallery pages
+                          </p>
                         </div>
                       )}
                       <Button
