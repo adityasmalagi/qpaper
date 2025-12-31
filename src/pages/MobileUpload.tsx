@@ -18,7 +18,7 @@ import { Progress } from '@/components/ui/progress';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { BOARDS, CLASS_LEVELS, SUBJECTS, EXAM_TYPES, YEARS, SEMESTERS, INTERNAL_NUMBERS } from '@/lib/constants';
-import { Loader2, Upload, ArrowLeft, X, FileText, Plus } from 'lucide-react';
+import { Loader2, Upload, ArrowLeft, X, FileText, Plus, GripVertical, Image as ImageIcon, Images } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { uploadFormSchema } from '@/lib/validation';
 import { formatPaperTitle } from '@/lib/paperUtils';
@@ -52,7 +52,57 @@ export default function MobileUploadPage() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [titleManuallyEdited, setTitleManuallyEdited] = useState(false);
   
+  // Drag-and-drop reordering state
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const dragNodeRef = useRef<HTMLDivElement | null>(null);
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Check if file is an image
+  const isImageFile = (file: File) => 
+    file.type.startsWith('image/') || 
+    ['jpg', 'jpeg', 'png', 'webp', 'heic'].includes(file.name.split('.').pop()?.toLowerCase() || '');
+
+  // Drag reorder handlers
+  const handleReorderDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedIndex(index);
+    dragNodeRef.current = e.currentTarget as HTMLDivElement;
+    e.dataTransfer.effectAllowed = 'move';
+    setTimeout(() => {
+      if (dragNodeRef.current) {
+        dragNodeRef.current.style.opacity = '0.5';
+      }
+    }, 0);
+  };
+
+  const handleReorderDragEnd = () => {
+    if (dragNodeRef.current) {
+      dragNodeRef.current.style.opacity = '1';
+    }
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+    dragNodeRef.current = null;
+  };
+
+  const handleReorderDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === index) return;
+    setDragOverIndex(index);
+  };
+
+  const handleReorderDrop = (e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === dropIndex) return;
+    
+    const newFiles = [...files];
+    const [draggedFile] = newFiles.splice(draggedIndex, 1);
+    newFiles.splice(dropIndex, 0, draggedFile);
+    setFiles(newFiles);
+    
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
 
   // Auto-fill title when subject, semester, or year changes
   useEffect(() => {
@@ -81,7 +131,7 @@ export default function MobileUploadPage() {
     return { valid: true };
   };
 
-  const isImageFile = (file: File) => file.type.startsWith('image/') || ['jpg', 'jpeg', 'png', 'webp', 'heic'].includes(file.name.split('.').pop()?.toLowerCase() || '');
+  
 
   const createImagePreview = (file: File): Promise<string> => {
     return new Promise((resolve) => {
@@ -331,53 +381,122 @@ export default function MobileUploadPage() {
                   Supported: PDF, DOC, DOCX, JPEG, PNG, WEBP, HEIC • Max 10MB per file
                 </p>
 
-                {/* File Previews */}
+                {/* File Previews with Thumbnails and Reordering */}
                 {files.length > 0 && (
-                  <div className="space-y-2">
-                    {files.map((uploadedFile, index) => (
-                      <div
-                        key={index}
-                        className={`relative flex items-center gap-3 rounded-lg border p-3 ${
-                          uploadedFile.error 
-                            ? 'border-destructive/50 bg-destructive/5' 
-                            : 'border-border bg-secondary/30'
-                        }`}
-                      >
-                        {/* Preview/Icon */}
-                        <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-secondary">
-                          {uploadedFile.preview ? (
-                            <img
-                              src={uploadedFile.preview}
-                              alt={uploadedFile.file.name}
-                              className="h-full w-full object-cover"
-                            />
-                          ) : (
-                            <FileText className="h-6 w-6 text-muted-foreground" />
-                          )}
-                        </div>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-medium text-foreground">
+                        Selected Files ({files.filter(f => !f.error).length})
+                      </p>
+                      {files.length > 1 && files.every(f => isImageFile(f.file)) && (
+                        <span className="text-xs text-muted-foreground">
+                          Drag to reorder
+                        </span>
+                      )}
+                    </div>
 
-                        {/* File Info */}
-                        <div className="flex-1 min-w-0">
-                          <p className="truncate text-sm font-medium text-foreground">
-                            {uploadedFile.file.name}
-                          </p>
-                          <p className={`text-xs ${uploadedFile.error ? 'text-destructive' : 'text-muted-foreground'}`}>
-                            {uploadedFile.error || `${(uploadedFile.file.size / 1024 / 1024).toFixed(2)} MB`}
-                          </p>
+                    {/* Gallery mode badge for multiple images */}
+                    {files.length > 1 && files.every(f => isImageFile(f.file) && !f.error) && (
+                      <div className="flex items-center justify-center">
+                        <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-medium">
+                          <Images className="h-3.5 w-3.5" />
+                          {files.length} images - Gallery mode
                         </div>
-
-                        {/* Remove Button */}
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 shrink-0"
-                          onClick={() => removeFile(index)}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
                       </div>
-                    ))}
+                    )}
+
+                    {/* File list */}
+                    <div className="space-y-2">
+                      {files.map((uploadedFile, index) => {
+                        const isImage = isImageFile(uploadedFile.file);
+                        const canReorder = files.length > 1 && files.every(f => isImageFile(f.file));
+                        
+                        return (
+                          <div
+                            key={`${uploadedFile.file.name}-${index}`}
+                            draggable={canReorder && !uploadedFile.error}
+                            onDragStart={(e) => canReorder && handleReorderDragStart(e, index)}
+                            onDragEnd={handleReorderDragEnd}
+                            onDragOver={(e) => canReorder && handleReorderDragOver(e, index)}
+                            onDrop={(e) => canReorder && handleReorderDrop(e, index)}
+                            className={`relative flex items-center gap-3 rounded-lg border p-3 transition-all duration-200 ${
+                              uploadedFile.error 
+                                ? 'border-destructive/50 bg-destructive/5' 
+                                : 'border-border bg-secondary/30'
+                            } ${
+                              canReorder && !uploadedFile.error ? 'cursor-grab active:cursor-grabbing' : ''
+                            } ${
+                              dragOverIndex === index && draggedIndex !== index
+                                ? 'ring-2 ring-primary ring-offset-2 ring-offset-background scale-[1.02]'
+                                : ''
+                            } ${
+                              draggedIndex === index ? 'opacity-50' : ''
+                            }`}
+                          >
+                            {/* Drag handle for reorderable items */}
+                            {canReorder && !uploadedFile.error && (
+                              <div className="flex-shrink-0 text-muted-foreground hover:text-foreground transition-colors touch-none">
+                                <GripVertical className="h-5 w-5" />
+                              </div>
+                            )}
+
+                            {/* Thumbnail Preview */}
+                            <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-secondary border border-border">
+                              {uploadedFile.preview ? (
+                                <img
+                                  src={uploadedFile.preview}
+                                  alt={uploadedFile.file.name}
+                                  className="h-full w-full object-cover"
+                                />
+                              ) : isImage ? (
+                                <ImageIcon className="h-6 w-6 text-muted-foreground" />
+                              ) : (
+                                <FileText className="h-6 w-6 text-muted-foreground" />
+                              )}
+                            </div>
+
+                            {/* File Info */}
+                            <div className="flex-1 min-w-0">
+                              <p className="truncate text-sm font-medium text-foreground">
+                                {uploadedFile.file.name}
+                              </p>
+                              <p className={`text-xs ${uploadedFile.error ? 'text-destructive' : 'text-muted-foreground'}`}>
+                                {uploadedFile.error ? (
+                                  uploadedFile.error
+                                ) : (
+                                  <>
+                                    {canReorder && <span className="text-primary">Page {index + 1} • </span>}
+                                    {(uploadedFile.file.size / 1024 / 1024).toFixed(2)} MB
+                                  </>
+                                )}
+                              </p>
+                            </div>
+
+                            {/* Remove Button */}
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 shrink-0 hover:bg-destructive/10 hover:text-destructive"
+                              onClick={() => removeFile(index)}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* Clear all button */}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                      onClick={() => setFiles([])}
+                    >
+                      Clear all files
+                    </Button>
                   </div>
                 )}
               </div>
