@@ -26,37 +26,50 @@ const fontSizeMap: Record<FontSize, { mobile: number; desktop: number }> = {
   large: { mobile: 16, desktop: 18 },
 };
 
-export function AccessibilityProvider({ children }: { children: ReactNode }) {
-  const [settings, setSettings] = useState<AccessibilitySettings>(() => {
-    if (typeof window === 'undefined') return defaultSettings;
-    
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      try {
-        return { ...defaultSettings, ...JSON.parse(stored) };
-      } catch {
-        return defaultSettings;
-      }
-    }
-    return defaultSettings;
-  });
+// Helper to apply font size immediately (used both on init and in effect)
+function applyFontSize(fontSize: FontSize) {
+  const { mobile, desktop } = fontSizeMap[fontSize];
+  
+  let styleEl = document.getElementById('accessibility-font-size');
+  if (!styleEl) {
+    styleEl = document.createElement('style');
+    styleEl.id = 'accessibility-font-size';
+    document.head.appendChild(styleEl);
+  }
+  
+  styleEl.textContent = `
+    html { font-size: ${mobile}px; }
+    @media (min-width: 768px) { html { font-size: ${desktop}px; } }
+  `;
+}
 
-  // Apply font size to document
-  useEffect(() => {
-    const { mobile, desktop } = fontSizeMap[settings.fontSize];
-    
-    // Create or update style element for responsive font sizing
-    let styleEl = document.getElementById('accessibility-font-size');
-    if (!styleEl) {
-      styleEl = document.createElement('style');
-      styleEl.id = 'accessibility-font-size';
-      document.head.appendChild(styleEl);
+// Get stored settings (used for immediate application)
+function getStoredSettings(): AccessibilitySettings {
+  if (typeof window === 'undefined') return defaultSettings;
+  
+  const stored = localStorage.getItem(STORAGE_KEY);
+  if (stored) {
+    try {
+      return { ...defaultSettings, ...JSON.parse(stored) };
+    } catch {
+      return defaultSettings;
     }
-    
-    styleEl.textContent = `
-      html { font-size: ${mobile}px; }
-      @media (min-width: 768px) { html { font-size: ${desktop}px; } }
-    `;
+  }
+  return defaultSettings;
+}
+
+// Apply font size immediately on script load (before React renders)
+if (typeof window !== 'undefined') {
+  const initialSettings = getStoredSettings();
+  applyFontSize(initialSettings.fontSize);
+}
+
+export function AccessibilityProvider({ children }: { children: ReactNode }) {
+  const [settings, setSettings] = useState<AccessibilitySettings>(getStoredSettings);
+
+  // Apply font size when settings change
+  useEffect(() => {
+    applyFontSize(settings.fontSize);
   }, [settings.fontSize]);
 
   // Persist to localStorage
