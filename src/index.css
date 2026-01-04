@@ -113,6 +113,13 @@
 
   html {
     scroll-behavior: smooth;
+    font-size: 14px; /* Mobile - one step smaller */
+  }
+
+  @media (min-width: 768px) {
+    html {
+      font-size: 16px; /* Desktop - normal size */
+    }
   }
 
   /* Smooth theme transitions - applied directly without class toggling */
