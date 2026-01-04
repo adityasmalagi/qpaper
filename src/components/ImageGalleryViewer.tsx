@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Maximize2, RotateCw, Loader2, Grid3X3 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSwipeGesture } from '@/hooks/useSwipeGesture';
+import { usePinchZoom } from '@/hooks/usePinchZoom';
 
 interface ImageGalleryViewerProps {
   fileUrls: string[];
@@ -34,6 +35,26 @@ export function ImageGalleryViewer({ fileUrls, title, className }: ImageGalleryV
     },
     enabled: fileUrls.length > 1 && scale === 1,
   });
+
+  // Pinch-to-zoom gesture for mobile
+  const { containerRef: pinchRef } = usePinchZoom({
+    onZoom: setScale,
+    currentScale: scale,
+    minScale: 0.25,
+    maxScale: 3,
+    enabled: true,
+  });
+
+  // Combine refs for both swipe and pinch
+  const combinedRef = useRef<HTMLDivElement>(null);
+  
+  useEffect(() => {
+    // Share the same element for both gesture handlers
+    if (combinedRef.current) {
+      (swipeRef as React.MutableRefObject<HTMLDivElement | null>).current = combinedRef.current;
+      (pinchRef as React.MutableRefObject<HTMLDivElement | null>).current = combinedRef.current;
+    }
+  }, [swipeRef, pinchRef]);
 
   const zoomIn = () => setScale(prev => Math.min(prev + 0.25, 3));
   const zoomOut = () => setScale(prev => Math.max(prev - 0.25, 0.25));
@@ -149,7 +170,7 @@ export function ImageGalleryViewer({ fileUrls, title, className }: ImageGalleryV
       )}
 
       {/* Image Display with Navigation */}
-      <div ref={swipeRef} className="relative flex-1 overflow-auto bg-muted/30 p-2 md:p-4 touch-pan-y" style={{ minHeight: '70vh' }}>
+      <div ref={combinedRef} className="relative flex-1 overflow-auto bg-muted/30 p-2 md:p-4 touch-none" style={{ minHeight: '70vh' }}>
         {loading && (
           <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-10">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
