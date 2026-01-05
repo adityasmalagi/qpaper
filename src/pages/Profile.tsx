@@ -88,9 +88,9 @@ interface FollowedUser {
   profile?: {
     id: string;
     full_name: string | null;
-    bio: string | null;
     class_level: string | null;
     board: string | null;
+    course: string | null;
   } | null;
 }
 
@@ -101,9 +101,9 @@ interface Follower {
   profile?: {
     id: string;
     full_name: string | null;
-    bio: string | null;
     class_level: string | null;
     board: string | null;
+    course: string | null;
   } | null;
   stats?: {
     paperCount: number;
@@ -299,11 +299,11 @@ export default function Profile() {
       return;
     }
 
-    // Then fetch profiles for all followed users
+    // Then fetch profiles for all followed users from public_profiles (limited fields)
     const followingIds = followsData.map(f => f.following_id);
     const { data: profilesData } = await supabase
-      .from('profiles')
-      .select('id, full_name, bio, class_level, board')
+      .from('public_profiles')
+      .select('id, full_name, class_level, board, course')
       .in('id', followingIds);
 
     const profileMap = new Map(profilesData?.map(p => [p.id, p]) || []);
@@ -333,11 +333,11 @@ export default function Profile() {
       return;
     }
 
-    // Fetch profiles for all followers
+    // Fetch profiles for all followers from public_profiles (limited fields)
     const followerIds = followersData.map(f => f.follower_id);
     const { data: profilesData } = await supabase
-      .from('profiles')
-      .select('id, full_name, bio, class_level, board')
+      .from('public_profiles')
+      .select('id, full_name, class_level, board, course')
       .in('id', followerIds);
 
     // Fetch paper stats for each follower
@@ -1177,9 +1177,9 @@ export default function Profile() {
                                     </Badge>
                                   )}
                                 </div>
-                                {follow.profile.bio && (
+                                {follow.profile.course && (
                                   <p className="text-xs text-muted-foreground mt-2 line-clamp-2">
-                                    {follow.profile.bio}
+                                    {follow.profile.course}
                                   </p>
                                 )}
                               </div>

@@ -115,11 +115,11 @@ export default function Browse() {
 
       if (error) throw error;
       
-      // Fetch uploader names for all papers
+      // Fetch uploader names for all papers from public_profiles (limited fields)
       if (data && data.length > 0) {
         const userIds = [...new Set(data.map(p => p.user_id))];
         const { data: profiles } = await supabase
-          .from('profiles')
+          .from('public_profiles')
           .select('id, full_name')
           .in('id', userIds);
         

@@ -13,7 +13,7 @@ import { PaperCard } from '@/components/PaperCard';
 interface PublicProfileData {
   id: string;
   full_name: string | null;
-  bio: string | null;
+  avatar_url: string | null;
   class_level: string | null;
   board: string | null;
   course: string | null;
@@ -54,10 +54,10 @@ export default function PublicProfile() {
 
   const fetchProfileAndPapers = async () => {
     try {
-      // Fetch profile
+      // Fetch profile from public_profiles (limited fields for privacy)
       const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('id, full_name, bio, class_level, board, course')
+        .from('public_profiles')
+        .select('id, full_name, avatar_url, class_level, board, course')
         .eq('id', userId)
         .maybeSingle();
 
@@ -178,9 +178,6 @@ export default function PublicProfile() {
                   </div>
                 )}
                 
-                {profile.bio && (
-                  <p className="mt-4 text-muted-foreground">{profile.bio}</p>
-                )}
 
                 {/* Stats Section */}
                 <div className="mt-4 flex flex-wrap items-center gap-4 text-sm">

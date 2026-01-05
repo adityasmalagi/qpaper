@@ -107,10 +107,10 @@ export default function PaperDetail() {
         // Increment view count atomically
         await supabase.rpc('increment_views', { _paper_id: id });
         
-        // Fetch uploader name
+        // Fetch uploader name from public_profiles (limited fields)
         if (data.user_id) {
           const { data: profileData } = await supabase
-            .from('profiles')
+            .from('public_profiles')
             .select('full_name')
             .eq('id', data.user_id)
             .maybeSingle();
