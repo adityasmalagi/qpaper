@@ -16,6 +16,9 @@ import { DocViewer } from '@/components/DocViewer';
 import { DifficultyRating } from '@/components/DifficultyRating';
 import { DifficultyBadge } from '@/components/DifficultyBadge';
 import { AIChat } from '@/components/AIChat';
+import { CommentSection } from '@/components/CommentSection';
+import { AddToCollectionModal } from '@/components/AddToCollectionModal';
+import { ProgressTracker } from '@/components/ProgressTracker';
 import JSZip from 'jszip';
 
 type FileViewType = 'pdf' | 'image' | 'gallery' | 'docx' | 'unknown';
@@ -440,9 +443,13 @@ export default function PaperDetail() {
                 </Button>
               )}
               <BookmarkButton paperId={paper.id} variant="button" />
+              <AddToCollectionModal paperId={paper.id} />
             </div>
           </CardContent>
         </Card>
+
+        {/* Progress Tracking */}
+        <ProgressTracker paperId={paper.id} className="mb-8" />
 
         {/* Difficulty Rating */}
         <Card className="mb-8">
@@ -494,6 +501,13 @@ export default function PaperDetail() {
             className="min-h-[600px]"
           />
         )}
+
+        {/* Comments & Discussion */}
+        <CommentSection 
+          paperId={paper.id} 
+          paperOwnerId={paper.user_id}
+          className="mt-8"
+        />
       </div>
     </div>
   );

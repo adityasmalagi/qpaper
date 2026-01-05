@@ -14,11 +14,13 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { User, FileText, Download, Eye, Save, Loader2, Settings, Mail, FileDown, Search, Heart, Trash2, Users, UserMinus, UserPlus, Pencil, ArrowLeft, Type } from 'lucide-react';
+import { User, FileText, Download, Eye, Save, Loader2, Settings, Mail, FileDown, Search, Heart, Trash2, Users, UserMinus, UserPlus, Pencil, ArrowLeft, Type, Target, Folder } from 'lucide-react';
 import { useAccessibility, fontSizeOptions } from '@/hooks/useAccessibility';
 import { Link } from 'react-router-dom';
 import { BOARDS, CLASS_LEVELS, ENGINEERING_BRANCHES, SUBJECTS, EXAM_TYPES, SEMESTERS, INTERNAL_NUMBERS, YEARS as PAPER_YEARS } from '@/lib/constants';
 import { PaperCard } from '@/components/PaperCard';
+import { ProgressStats } from '@/components/ProgressStats';
+import { useCollections, Collection } from '@/hooks/useCollections';
 
 interface Profile {
   full_name: string | null;
@@ -138,6 +140,7 @@ export default function Profile() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const defaultTab = searchParams.get('tab') || 'profile';
+  const { collections, loading: loadingCollections, deleteCollection } = useCollections();
   
   const [profile, setProfile] = useState<Profile>({ 
     full_name: '', 
@@ -683,6 +686,16 @@ export default function Profile() {
                 <UserPlus className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 <span className="hidden sm:inline">Followers ({followers.length})</span>
                 <span className="sm:hidden">Followers</span>
+              </TabsTrigger>
+              <TabsTrigger value="progress" className="flex items-center gap-1.5 text-xs sm:text-sm sm:gap-2">
+                <Target className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                <span className="hidden sm:inline">Progress</span>
+                <span className="sm:hidden">Progress</span>
+              </TabsTrigger>
+              <TabsTrigger value="collections" className="flex items-center gap-1.5 text-xs sm:text-sm sm:gap-2">
+                <Folder className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                <span className="hidden sm:inline">Collections ({collections.length})</span>
+                <span className="sm:hidden">Collections</span>
               </TabsTrigger>
               <TabsTrigger value="settings" className="flex items-center gap-1.5 text-xs sm:text-sm sm:gap-2">
                 <Settings className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
@@ -1311,6 +1324,73 @@ export default function Profile() {
                           <p className="text-muted-foreground">User no longer available</p>
                         </Card>
                       )
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Progress Tab */}
+          <TabsContent value="progress">
+            <div className="max-w-2xl">
+              <ProgressStats />
+            </div>
+          </TabsContent>
+
+          {/* Collections Tab */}
+          <TabsContent value="collections">
+            <Card className="max-w-4xl border-border bg-card">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Folder className="h-5 w-5" />
+                  My Collections
+                </CardTitle>
+                <CardDescription>
+                  Organize your papers into custom collections
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {loadingCollections ? (
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                  </div>
+                ) : collections.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Folder className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                    <p className="text-muted-foreground mb-2">No collections yet</p>
+                    <p className="text-sm text-muted-foreground">
+                      Add papers to collections from the paper detail page
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    {collections.map((collection) => (
+                      <Card key={collection.id} className="border-border hover:shadow-md transition-shadow">
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between mb-2">
+                            <div
+                              className="w-4 h-4 rounded shrink-0"
+                              style={{ backgroundColor: collection.color }}
+                            />
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 px-2 text-muted-foreground hover:text-destructive"
+                              onClick={() => deleteCollection(collection.id)}
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                          <h3 className="font-medium text-foreground truncate">{collection.name}</h3>
+                          <p className="text-sm text-muted-foreground">
+                            {collection.papers_count} paper{collection.papers_count !== 1 ? 's' : ''}
+                          </p>
+                          {collection.is_public && (
+                            <Badge variant="outline" className="mt-2 text-xs">Public</Badge>
+                          )}
+                        </CardContent>
+                      </Card>
                     ))}
                   </div>
                 )}
