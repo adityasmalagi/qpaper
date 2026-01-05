@@ -105,11 +105,11 @@ export default function Index() {
 
         const { data } = await query;
         
-        // Fetch uploader names and shuffle
+        // Fetch uploader names and shuffle from public_profiles (limited fields)
         if (data && data.length > 0) {
           const userIds = [...new Set(data.map(p => p.user_id))];
           const { data: profiles } = await supabase
-            .from('profiles')
+            .from('public_profiles')
             .select('id, full_name')
             .in('id', userIds);
           

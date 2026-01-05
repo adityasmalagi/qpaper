@@ -111,8 +111,9 @@ export default function AdminDashboard() {
 
   const fetchUsers = async () => {
     setLoadingUsers(true);
+    // Admins use public_profiles for listing users
     const { data: profiles, error: profilesError } = await supabase
-      .from('profiles')
+      .from('public_profiles')
       .select('id, full_name, created_at')
       .order('created_at', { ascending: false });
 
@@ -197,8 +198,9 @@ export default function AdminDashboard() {
       .from('question_papers')
       .select('status, views_count, downloads_count');
 
+    // Count users from public_profiles
     const { count: usersCount } = await supabase
-      .from('profiles')
+      .from('public_profiles')
       .select('*', { count: 'exact', head: true });
 
     if (papersData) {
