@@ -81,6 +81,71 @@ export type Database = {
           },
         ]
       }
+      collection_papers: {
+        Row: {
+          added_at: string | null
+          collection_id: string
+          id: string
+          paper_id: string
+        }
+        Insert: {
+          added_at?: string | null
+          collection_id: string
+          id?: string
+          paper_id: string
+        }
+        Update: {
+          added_at?: string | null
+          collection_id?: string
+          id?: string
+          paper_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collection_papers_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "paper_collections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "collection_papers_paper_id_fkey"
+            columns: ["paper_id"]
+            isOneToOne: false
+            referencedRelation: "question_papers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      comment_upvotes: {
+        Row: {
+          comment_id: string
+          created_at: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          comment_id: string
+          created_at?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          comment_id?: string
+          created_at?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comment_upvotes_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "paper_comments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           created_at: string
@@ -113,6 +178,93 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      paper_collections: {
+        Row: {
+          color: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          is_public: boolean | null
+          name: string
+          papers_count: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_public?: boolean | null
+          name: string
+          papers_count?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_public?: boolean | null
+          name?: string
+          papers_count?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      paper_comments: {
+        Row: {
+          content: string
+          created_at: string | null
+          id: string
+          is_solution: boolean | null
+          paper_id: string
+          parent_id: string | null
+          updated_at: string | null
+          upvotes_count: number | null
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          id?: string
+          is_solution?: boolean | null
+          paper_id: string
+          parent_id?: string | null
+          updated_at?: string | null
+          upvotes_count?: number | null
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          id?: string
+          is_solution?: boolean | null
+          paper_id?: string
+          parent_id?: string | null
+          updated_at?: string | null
+          upvotes_count?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "paper_comments_paper_id_fkey"
+            columns: ["paper_id"]
+            isOneToOne: false
+            referencedRelation: "question_papers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "paper_comments_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "paper_comments"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       paper_metric_events: {
         Row: {
@@ -337,6 +489,36 @@ export type Database = {
         }
         Relationships: []
       }
+      study_streaks: {
+        Row: {
+          created_at: string | null
+          current_streak: number | null
+          id: string
+          last_activity_date: string | null
+          longest_streak: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          current_streak?: number | null
+          id?: string
+          last_activity_date?: string | null
+          longest_streak?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          current_streak?: number | null
+          id?: string
+          last_activity_date?: string | null
+          longest_streak?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_bookmarks: {
         Row: {
           created_at: string | null
@@ -415,6 +597,53 @@ export type Database = {
           id?: string
         }
         Relationships: []
+      }
+      user_paper_progress: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          id: string
+          notes: string | null
+          paper_id: string
+          score: number | null
+          status: string
+          time_spent: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          paper_id: string
+          score?: number | null
+          status: string
+          time_spent?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          paper_id?: string
+          score?: number | null
+          status?: string
+          time_spent?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_paper_progress_paper_id_fkey"
+            columns: ["paper_id"]
+            isOneToOne: false
+            referencedRelation: "question_papers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
