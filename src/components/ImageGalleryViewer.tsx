@@ -170,7 +170,7 @@ export function ImageGalleryViewer({ fileUrls, title, className }: ImageGalleryV
       )}
 
       {/* Image Display with Navigation */}
-      <div ref={combinedRef} className="relative flex-1 overflow-auto bg-muted/30 p-2 md:p-4 touch-none" style={{ minHeight: '70vh' }}>
+      <div ref={combinedRef} className="relative overflow-auto bg-muted/30 p-2 md:p-4 touch-none">
         {loading && (
           <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-10">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -201,7 +201,7 @@ export function ImageGalleryViewer({ fileUrls, title, className }: ImageGalleryV
           </Button>
         )}
 
-        <div className="flex justify-center items-center min-h-[60vh]">
+        <div className="flex justify-center items-center">
           <div className="relative">
             <img
               key={currentIndex}
