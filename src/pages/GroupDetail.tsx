@@ -5,6 +5,7 @@ import { useGroupPapers } from '@/hooks/useGroupPapers';
 import { GroupChat } from '@/components/GroupChat';
 import { GroupMembersList } from '@/components/GroupMembersList';
 import { GroupPapersList } from '@/components/GroupPapersList';
+import { GroupInviteModal } from '@/components/GroupInviteModal';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -19,7 +20,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { ArrowLeft, Loader2, Users, MessageCircle, FileText, Settings, LogOut, Trash2, Globe, Lock } from 'lucide-react';
+import { ArrowLeft, Loader2, Users, MessageCircle, FileText, LogOut, Trash2, Globe, Lock } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useStudyGroups } from '@/hooks/useStudyGroups';
 import { supabase } from '@/integrations/supabase/client';
@@ -149,6 +150,7 @@ export default function GroupDetail() {
 
             {user && group.is_member && (
               <div className="flex gap-2">
+                {isAdmin && <GroupInviteModal groupId={groupId!} isAdmin={isAdmin} />}
                 {!isOwner && (
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
