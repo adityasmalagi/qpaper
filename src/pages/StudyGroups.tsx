@@ -5,8 +5,8 @@ import { GroupCard } from '@/components/GroupCard';
 import { CreateGroupModal } from '@/components/CreateGroupModal';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
-import { Loader2, Users, Search } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Loader2, Users, Search, ArrowLeft } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 
 export default function StudyGroups() {
@@ -38,6 +38,10 @@ export default function StudyGroups() {
       <Navbar />
 
       <main className="container mx-auto px-4 py-8">
+        <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4">
+          <ArrowLeft className="h-4 w-4" />
+          Back to Home
+        </Link>
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-3xl font-bold text-foreground">Study Groups</h1>

@@ -15,6 +15,7 @@ import {
   Download,
   Heart,
   Users,
+  Folder,
 } from "lucide-react";
 import qphubLogo from "@/assets/qphub-logo.png";
 import { NotificationsDropdown } from "@/components/NotificationsDropdown";
@@ -173,6 +174,10 @@ export function Navbar() {
                   <DropdownMenuItem onClick={() => navigate("/profile?tab=downloads")}>
                     <Download className="mr-2 h-4 w-4" />
                     Downloads
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/profile?tab=collections")}>
+                    <Folder className="mr-2 h-4 w-4" />
+                    Collections
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate("/profile?tab=following")}>
                     <Users className="mr-2 h-4 w-4" />
