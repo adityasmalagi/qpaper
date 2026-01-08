@@ -21,6 +21,7 @@ import Requests from "./pages/Requests";
 import Calendar from "./pages/Calendar";
 import StudyGroups from "./pages/StudyGroups";
 import GroupDetail from "./pages/GroupDetail";
+import JoinGroup from "./pages/JoinGroup";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -50,6 +51,7 @@ const App = () => (
                 <Route path="/calendar" element={<Calendar />} />
                 <Route path="/groups" element={<StudyGroups />} />
                 <Route path="/groups/:groupId" element={<GroupDetail />} />
+                <Route path="/join/:inviteCode" element={<JoinGroup />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </BrowserRouter>
