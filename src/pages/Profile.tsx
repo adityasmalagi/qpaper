@@ -14,12 +14,11 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { User, FileText, Download, Eye, Save, Loader2, Settings, Mail, FileDown, Search, Heart, Trash2, Users, UserMinus, UserPlus, Pencil, ArrowLeft, Type, Target, Folder } from 'lucide-react';
+import { User, FileText, Download, Eye, Save, Loader2, Settings, Mail, FileDown, Search, Heart, Trash2, Users, UserMinus, UserPlus, Pencil, ArrowLeft, Type, Folder } from 'lucide-react';
 import { useAccessibility, fontSizeOptions } from '@/hooks/useAccessibility';
 import { Link } from 'react-router-dom';
 import { BOARDS, CLASS_LEVELS, ENGINEERING_BRANCHES, SUBJECTS, EXAM_TYPES, SEMESTERS, INTERNAL_NUMBERS, YEARS as PAPER_YEARS } from '@/lib/constants';
 import { PaperCard } from '@/components/PaperCard';
-import { ProgressStats } from '@/components/ProgressStats';
 import { useCollections, Collection } from '@/hooks/useCollections';
 
 interface Profile {
@@ -687,11 +686,6 @@ export default function Profile() {
                 <span className="hidden sm:inline">Followers ({followers.length})</span>
                 <span className="sm:hidden">Followers</span>
               </TabsTrigger>
-              <TabsTrigger value="progress" className="flex items-center gap-1.5 text-xs sm:text-sm sm:gap-2">
-                <Target className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                <span className="hidden sm:inline">Progress</span>
-                <span className="sm:hidden">Progress</span>
-              </TabsTrigger>
               <TabsTrigger value="collections" className="flex items-center gap-1.5 text-xs sm:text-sm sm:gap-2">
                 <Folder className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 <span className="hidden sm:inline">Collections ({collections.length})</span>
@@ -1329,13 +1323,6 @@ export default function Profile() {
                 )}
               </CardContent>
             </Card>
-          </TabsContent>
-
-          {/* Progress Tab */}
-          <TabsContent value="progress">
-            <div className="max-w-2xl">
-              <ProgressStats />
-            </div>
           </TabsContent>
 
           {/* Collections Tab */}

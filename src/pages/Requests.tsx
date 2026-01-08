@@ -4,7 +4,8 @@ import { usePaperRequests } from '@/hooks/usePaperRequests';
 import { PaperRequestCard } from '@/components/PaperRequestCard';
 import { CreateRequestModal } from '@/components/CreateRequestModal';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, FileQuestion } from 'lucide-react';
+import { Loader2, FileQuestion, ArrowLeft } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export default function Requests() {
   const { requests, loading, toggleUpvote, deleteRequest, refetch } = usePaperRequests();
@@ -21,6 +22,10 @@ export default function Requests() {
       <Navbar />
       
       <main className="container mx-auto px-4 py-8">
+        <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4">
+          <ArrowLeft className="h-4 w-4" />
+          Back to Home
+        </Link>
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-3xl font-bold text-foreground">Paper Requests</h1>
