@@ -34,10 +34,10 @@ function MemberRow({ member, currentUserId, canManageMembers, getRoleIcon, getRo
         to={`/user/${member.user_id}`}
         className="flex items-center gap-3 flex-1 min-w-0"
       >
-        <Avatar className="h-10 w-10">
-          <AvatarImage src={member.user_avatar || undefined} />
-          <AvatarFallback>
-            {member.user_name?.charAt(0)?.toUpperCase() || 'U'}
+        <Avatar className="h-10 w-10 ring-2 ring-background">
+          <AvatarImage src={member.user_avatar || undefined} alt={member.user_name || 'User'} />
+          <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+            {member.user_name?.split(' ').map(n => n.charAt(0)).join('').slice(0, 2).toUpperCase() || 'U'}
           </AvatarFallback>
         </Avatar>
         <div className="flex-1 min-w-0">
