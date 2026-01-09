@@ -57,10 +57,10 @@ export function GroupChat({ groupId }: GroupChatProps) {
         key={message.id}
         className={`flex gap-3 mb-4 ${isOwn ? 'flex-row-reverse' : ''}`}
       >
-        <Avatar className="h-8 w-8 shrink-0">
-          <AvatarImage src={message.user_avatar || undefined} />
-          <AvatarFallback>
-            {message.user_name?.charAt(0)?.toUpperCase() || 'U'}
+        <Avatar className="h-8 w-8 shrink-0 ring-2 ring-background">
+          <AvatarImage src={message.user_avatar || undefined} alt={message.user_name || 'User'} />
+          <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
+            {message.user_name?.split(' ').map(n => n.charAt(0)).join('').slice(0, 2).toUpperCase() || 'U'}
           </AvatarFallback>
         </Avatar>
         <div className={`flex flex-col ${isOwn ? 'items-end' : 'items-start'} max-w-[70%]`}>
