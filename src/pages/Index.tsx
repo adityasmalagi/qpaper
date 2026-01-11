@@ -51,6 +51,7 @@ interface RecommendedPaper {
   created_at: string | null;
   uploaderName?: string | null;
   uploaderAvatar?: string | null;
+  uploaderPaperCount?: number | null;
 }
 
 export default function Index() {
@@ -107,7 +108,7 @@ export default function Index() {
 
         const { data } = await query;
         
-        // Fetch uploader names and avatars from public_profiles
+        // Fetch uploader names, avatars and paper counts from public_profiles
         if (data && data.length > 0) {
           const userIds = [...new Set(data.map(p => p.user_id))];
           const { data: profiles } = await supabase
@@ -115,11 +116,24 @@ export default function Index() {
             .select('id, full_name, avatar_url')
             .in('id', userIds);
           
+          // Get paper counts for each uploader
+          const { data: paperCounts } = await supabase
+            .from('question_papers')
+            .select('user_id')
+            .eq('status', 'approved')
+            .in('user_id', userIds);
+          
+          const countMap = new Map<string, number>();
+          paperCounts?.forEach(p => {
+            countMap.set(p.user_id, (countMap.get(p.user_id) || 0) + 1);
+          });
+
           const profileMap = new Map(profiles?.map(p => [p.id, { name: p.full_name, avatar: p.avatar_url }]) || []);
           const papersWithUploaders = data.map(paper => ({
             ...paper,
             uploaderName: profileMap.get(paper.user_id)?.name || null,
             uploaderAvatar: profileMap.get(paper.user_id)?.avatar || null,
+            uploaderPaperCount: countMap.get(paper.user_id) || null,
           }));
           
           const shuffled = papersWithUploaders.sort(() => Math.random() - 0.5);
@@ -307,6 +321,7 @@ export default function Index() {
                       instituteName={paper.institute_name}
                       uploaderName={paper.uploaderName}
                       uploaderAvatar={paper.uploaderAvatar}
+                      uploaderPaperCount={paper.uploaderPaperCount}
                       uploaderId={paper.user_id}
                       createdAt={paper.created_at}
                     />

@@ -20,6 +20,7 @@ interface TrendingPaper {
   ratings_count: number | null;
   uploaderName?: string | null;
   uploaderAvatar?: string | null;
+  uploaderPaperCount?: number | null;
   trendingScore?: number;
 }
 
@@ -83,18 +84,31 @@ export function useTrendingPapers(timeFrame: TimeFrame = 'weekly', limit = 8) {
           .sort((a, b) => (b.trendingScore || 0) - (a.trendingScore || 0))
           .slice(0, limit);
 
-        // Fetch uploader names and avatars
+        // Fetch uploader names, avatars, and paper counts
         const userIds = [...new Set(sortedPapers.map(p => p.user_id))];
         const { data: profiles } = await supabase
           .from('public_profiles')
           .select('id, full_name, avatar_url')
           .in('id', userIds);
 
+        // Get paper counts for each uploader
+        const { data: paperCounts } = await supabase
+          .from('question_papers')
+          .select('user_id')
+          .eq('status', 'approved')
+          .in('user_id', userIds);
+        
+        const countMap = new Map<string, number>();
+        paperCounts?.forEach(p => {
+          countMap.set(p.user_id, (countMap.get(p.user_id) || 0) + 1);
+        });
+
         const profileMap = new Map(profiles?.map(p => [p.id, { name: p.full_name, avatar: p.avatar_url }]) || []);
         const papersWithUploaders = sortedPapers.map(paper => ({
           ...paper,
           uploaderName: profileMap.get(paper.user_id)?.name || null,
           uploaderAvatar: profileMap.get(paper.user_id)?.avatar || null,
+          uploaderPaperCount: countMap.get(paper.user_id) || null,
         }));
 
         setPapers(papersWithUploaders);
