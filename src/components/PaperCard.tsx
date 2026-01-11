@@ -1,7 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { Eye, Download, FileText, Building2 } from 'lucide-react';
+import { Eye, Download, FileText, Building2, FileUp } from 'lucide-react';
 import { BookmarkButton } from '@/components/BookmarkButton';
 import { DifficultyBadge } from '@/components/DifficultyBadge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -21,6 +21,7 @@ interface PaperCardProps {
   uploaderName?: string | null;
   uploaderId?: string | null;
   uploaderAvatar?: string | null;
+  uploaderPaperCount?: number | null;
   semester?: number | null;
   internalNumber?: number | null;
   instituteName?: string | null;
@@ -58,6 +59,7 @@ export function PaperCard({
   uploaderName,
   uploaderId,
   uploaderAvatar,
+  uploaderPaperCount,
   semester,
   internalNumber,
   instituteName,
@@ -172,10 +174,16 @@ export function PaperCard({
                         </AvatarFallback>
                       </Avatar>
                       <span className="truncate">{uploaderName}</span>
+                      {uploaderPaperCount && uploaderPaperCount > 0 && (
+                        <Badge variant="secondary" className="h-4 px-1.5 text-[10px] font-medium gap-0.5 shrink-0">
+                          <FileUp className="h-2.5 w-2.5" />
+                          {uploaderPaperCount}
+                        </Badge>
+                      )}
                     </div>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>View {uploaderName}'s profile</p>
+                    <p>View {uploaderName}'s profile ({uploaderPaperCount || 0} papers uploaded)</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
